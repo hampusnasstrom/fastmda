@@ -1,2 +1,2 @@
 # fast_mda
-Generic program for multi dimensional acquisisition with FastAPI
+Generic program for multi dimensional acquisition with FastAPI
