@@ -9,17 +9,20 @@ class Klaus6AxisController(Device):
         self.connect()
         super().__init__(self.get_id())
 
-    def connect(self):
+    def connect(self) -> bool:
         pass
 
-    def disconnect(self):
-        pass
+    def disconnect(self) -> bool:
+        raise NotImplementedError
+
+    def is_connected(self) -> bool:
+        raise NotImplementedError
 
     def get_id(self) -> str:
         return f'{self.com_port}_6AxisController'
 
     def get_actuators(self) -> List[Actuator]:
-        pass
+        raise NotImplementedError
 
     def get_detectors(self) -> List[Detector]:
         return []

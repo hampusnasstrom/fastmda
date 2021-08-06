@@ -34,10 +34,13 @@ class Device:
     def __init__(self, device_id: str):
         self.id = device_id
 
-    def connect(self):
+    def connect(self) -> bool:
         raise NotImplementedError
 
-    def disconnect(self):
+    def disconnect(self) -> bool:
+        raise NotImplementedError
+
+    def is_connected(self) -> bool:
         raise NotImplementedError
 
     def get_actuators(self) -> List[Actuator]:
