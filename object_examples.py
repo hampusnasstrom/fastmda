@@ -12,12 +12,12 @@ class Detector:
 
 
 @dataclass
-class ControllerType:
+class ActuatorType:
     type: str
     long_name: str
 
 
-class Controller:
+class Actuator:
 
     def __init__(self):
         self.position = 0
@@ -25,7 +25,7 @@ class Controller:
     def get_position(self):
         raise NotImplementedError
 
-    def get_controller_type(self) -> ControllerType:
+    def get_actuator_type(self) -> ActuatorType:
         raise NotImplementedError
 
 
@@ -40,7 +40,7 @@ class Device:
     def disconnect(self):
         raise NotImplementedError
 
-    def get_controllers(self) -> List[Controller]:
+    def get_actuators(self) -> List[Actuator]:
         raise NotImplementedError
 
     def get_detectors(self) -> List[Detector]:

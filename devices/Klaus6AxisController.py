@@ -1,5 +1,5 @@
 from typing import List
-from object_examples import Device, Controller, Detector
+from object_examples import Device, Actuator, Detector
 
 
 class Klaus6AxisController(Device):
@@ -18,7 +18,7 @@ class Klaus6AxisController(Device):
     def get_id(self) -> str:
         pass
 
-    def get_controllers(self) -> List[Controller]:
+    def get_actuators(self) -> List[Actuator]:
         pass
 
     def get_detectors(self) -> List[Detector]:
