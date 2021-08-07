@@ -26,3 +26,7 @@ The data can be of any dimension, from a sensor giving a single 0-dimensional va
 ## Actuator
 An abstract class to be implemented by the user for each part of a device that can be actuated, i.e. that can receive
 a "set" command.
+
+## Measurement
+An abstract class to be implemented by the user for custom measurements. 
+The standard measurements like mapping over actuators also inherit from this class.

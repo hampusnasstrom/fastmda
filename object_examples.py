@@ -48,3 +48,18 @@ class Device:
 
     def get_detectors(self) -> List[Detector]:
         raise NotImplementedError
+
+
+class Measurement:
+
+    def __init__(self):
+        self.is_busy = False
+
+    def start(self):
+        raise NotImplementedError
+
+    def abort(self):
+        raise NotImplementedError
+
+    def get_result(self):
+        raise NotImplementedError
