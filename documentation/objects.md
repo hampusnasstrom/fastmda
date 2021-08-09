@@ -19,18 +19,25 @@ but the user can inherit from the `Measurement` class and implement their own if
 An abstract class to be implemented by the user for each type of device that needs to be connected. The class needs to
 implement the following methods:
 ```
-get_controllers(self) -> List[Actuator]
+get_actuators(self) -> List[Actuator]
 get_detectors(self) -> List[Detector]
 ```
-These should return a list of instances of the `Actuator` and `Detector` classes for each controller and detector 
+These should return a list of instances of the `Actuator` and `Detector` classes for each actuator and detector 
 connected to the device. For details on the `Actuator` and `Detector` classes please see the respective headers below.
 
 In addition, the derived `Device` class needs to implement a `connect`, `disconnect` and `is_connected` method:
 ```
-connect(self) -> bool
-disconnect(self) -> bool
+connect(self) -> int
+disconnect(self) -> int
 is_connected(self) -> bool
 ```
+<!--- connect and disconnect should be int so that they can return a code that explains why the connect didn't work -->
+<!--- How about a "identify(self) -\> string" function, that returns some sort of identifier (name, serial number, ...)
+ -->
+<!--- How do you handle a device like this: A detector, that has a filter, that can be replaced manually? You would want
+ to store the information about which filter is in somewhere. Maybe you would also want to take measurements dependent
+  on which filter is in and maybe even ask the user at some point to change the filter now -->
+
 For a detailed description of the class, see the documentation.
 
 ## Detector
@@ -44,5 +51,9 @@ An abstract class to be implemented by the user for each part of a device that c
 a "set" command.
 
 ## Measurement
-An abstract class to be implemented by the user for custom measurements. 
+An abstract class to be implemented by the user for custom measurements. The class contains a sequence of operations 
+performed by the `Actuators` and `Detectors`. The class needs to implement the following methods:
+```
+
+```
 The standard measurements like mapping over actuators also inherit from this class.
