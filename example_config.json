@@ -1,0 +1,18 @@
+{
+  "devices": [
+    {
+      "name": "Klaus6AxisController",
+      "py_file": "Klaus6AxisController.py",
+      "args": {
+        "com_port": "COM1"
+      }
+    },
+    {
+      "name": "Klaus6AxisController",
+      "py_file": "Klaus6AxisController.py",
+      "args": {
+        "com_port": "COM2"
+      }
+    }
+  ]
+}
