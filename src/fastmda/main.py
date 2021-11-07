@@ -3,6 +3,7 @@ import os
 
 from fastapi import FastAPI
 
+from fastmda.exceptions import FastMDAImplementationError, FastMDAModuleError
 from fastmda.globals import *
 
 from fastmda.routers import devices
@@ -40,17 +41,15 @@ app.include_router(devices.router)
 @app.on_event("startup")
 async def build_device_dict():
     for device_id in device_info:
-        module_file = device_info[device_id].script
-        spec = importlib.util.spec_from_file_location(
-            module_file[:-3],
-            os.path.join("devices", module_file)
-        )
-        module = importlib.util.module_from_spec(spec)
+        module_name = f"fastmda.devices.{device_info[device_id].device_type}"
         try:
-            spec.loader.exec_module(module)
-            device_dict[device_id] = module.Device(**device_info[device_id].args)
-        except Exception as e:
-            print(e)
+            device_module = importlib.import_module(module_name)
+        except ModuleNotFoundError:
+            raise FastMDAModuleError(module_name)
+        try:
+            device_dict[device_id] = device_module.Device(**device_info[device_id].args)
+        except AttributeError:
+            raise FastMDAImplementationError(device_module, "No Device class implementation.")
 
 
 @app.on_event("shutdown")

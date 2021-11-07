@@ -1,3 +1,5 @@
+from types import ModuleType
+
 from fastmda.objects import AbstractDevice
 
 
@@ -23,4 +25,40 @@ class FastMDAConnectFailed(FastMDAException):
         :type message: str
         """
         self.message = f'Device {device.id} failed to connect. {message}'
+        super().__init__(self.message)
+
+
+class FastMDAImplementationError(FastMDAException):
+    """
+    Raised if a device or measurement is not written according to specification
+    """
+
+    def __init__(self, implemented_module: ModuleType, message: str = ""):
+        """
+        Init method for FastMDAImplementationError exception
+
+        :param implemented_module: The module that is not implemented according to specification
+        :type implemented_module: ModuleType
+        :param message: Detailed message for log
+        :type message: str
+        """
+        self.message = f'{implemented_module.__name__} not implemented according to spec. {message}'
+        super().__init__(self.message)
+
+
+class FastMDAModuleError(FastMDAException):
+    """
+    Raised if a module cannot be found
+    """
+
+    def __init__(self, implemented_module: str, message: str = ""):
+        """
+        Init method for FastMDAImplementationError exception
+
+        :param implemented_module: The module that cannot be found
+        :type implemented_module: str
+        :param message: Detailed message for log
+        :type message: str
+        """
+        self.message = f'No {implemented_module} module found. {message}'
         super().__init__(self.message)

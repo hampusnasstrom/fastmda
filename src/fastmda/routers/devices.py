@@ -27,7 +27,7 @@ async def connect_device(device_id: int = Path(..., description="The id of the d
         return {"error": "Device class has not implemented connect method"}
     except FastMDAConnectFailed as e:
         return {"error": e}
-    return device_info[device_id].is_connected
+    return {"connection_status": device_info[device_id].is_connected}
 
 
 @router.put("/{device_id}/disconnect")
@@ -38,4 +38,4 @@ async def disconnect_device(device_id: int = Path(..., description="The id of th
         device_info[device_id].is_connected = not device_dict[device_id].disconnect()
     except NotImplementedError:
         return {"error": "Device class has not implemented disconnect method"}
-    return device_info[device_id].is_connected
+    return {"connection_status": device_info[device_id].is_connected}
