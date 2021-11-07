@@ -1,0 +1,1 @@
+uvicorn fastmda.main:app --reload

@@ -3,7 +3,7 @@ import os
 
 from fastapi import FastAPI
 
-from globals import *
+from fastmda.globals import *
 
 from fastmda.routers import devices
 
