@@ -1,4 +1,4 @@
-from object_examples import Device
+from fastmda.objects import AbstractDevice
 
 
 class FastMDAException(Exception):
@@ -13,7 +13,7 @@ class FastMDAConnectFailed(FastMDAException):
     Raised if a device fails to connect
     """
 
-    def __init__(self, device: Device, message: str = ""):
+    def __init__(self, device: AbstractDevice, message: str = ""):
         """
         Init method for FastMDAConnectFailed exception
 

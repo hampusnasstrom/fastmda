@@ -1,8 +1,7 @@
 from typing import List
-from dataclasses import dataclass
 
 
-class Detector:
+class AbstractDetector:
     """
     Abstract class for the detector part of the device.
     """
@@ -20,13 +19,7 @@ class Detector:
         raise NotImplementedError
 
 
-@dataclass
-class ActuatorType:
-    type: str
-    long_name: str
-
-
-class Actuator:
+class AbstractActuator:
     """
     Abstract class for the actuator part of the device.
     """
@@ -40,11 +33,8 @@ class Actuator:
     def get_position(self):
         raise NotImplementedError
 
-    def get_actuator_type(self) -> ActuatorType:
-        raise NotImplementedError
 
-
-class Device:
+class AbstractDevice:
     """
     Abstract class to be inherited by any device the controls the communication with actuators and/or detectors.
     """
@@ -67,14 +57,14 @@ class Device:
     def is_connected(self) -> bool:
         raise NotImplementedError
 
-    def get_actuators(self) -> List[Actuator]:
+    def get_actuators(self) -> List[AbstractActuator]:
         raise NotImplementedError
 
-    def get_detectors(self) -> List[Detector]:
+    def get_detectors(self) -> List[AbstractDetector]:
         raise NotImplementedError
 
 
-class Measurement:
+class AbstractMeasurement:
     """
     Abstract class to be inherited by any measurement implemented on the server side.
     """
