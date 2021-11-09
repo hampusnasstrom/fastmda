@@ -1,5 +1,7 @@
 from typing import List
 
+from fastmda.schemas import DeviceType
+
 
 class AbstractDetector:
     """
@@ -38,6 +40,7 @@ class AbstractDevice:
     """
     Abstract class to be inherited by any device the controls the communication with actuators and/or detectors.
     """
+    device_type = DeviceType()  # Should be overwritten by implementing class
 
     def __init__(self, device_id: str):
         """

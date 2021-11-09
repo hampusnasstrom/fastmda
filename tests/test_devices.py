@@ -1,5 +1,5 @@
 from fastmda.exceptions import FastMDAConnectFailed
-from fastmda.devices import example_device
+from fastmda.device_types import example_device
 
 
 def test_example_device():
