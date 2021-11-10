@@ -89,7 +89,7 @@ models.Base.metadata.create_all(bind=engine)
 @app.on_event("startup")
 async def build_device_dict():
     for device_module_info in iter_modules(device_types.__path__):
-        module_name = f"fastmda.device_types.{device_module_info.name}"
+        module_name = f"fastmda.device_types.{device_module_info.name}.{device_module_info.name}"
         try:
             device_module = importlib.import_module(module_name)
         except ModuleNotFoundError:

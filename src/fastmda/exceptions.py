@@ -1,6 +1,6 @@
 from types import ModuleType
 
-from fastmda.objects import AbstractDevice
+from fastmda.schemas import ActuatorInfo, DeviceType
 
 
 class FastMDAException(Exception):
@@ -15,7 +15,7 @@ class FastMDAConnectFailed(FastMDAException):
     Raised if a device fails to connect
     """
 
-    def __init__(self, device: AbstractDevice, message: str = ""):
+    def __init__(self, device: DeviceType, message: str = ""):
         """
         Init method for FastMDAConnectFailed exception
 
@@ -24,7 +24,7 @@ class FastMDAConnectFailed(FastMDAException):
         :param message: Detailed message for log
         :type message: str
         """
-        self.message = f'Device {device.id} failed to connect. {message}'
+        self.message = f'A {device.name} device failed to connect. {message}'
         super().__init__(self.message)
 
 
@@ -61,4 +61,22 @@ class FastMDAModuleError(FastMDAException):
         :type message: str
         """
         self.message = f'No {implemented_module} module found. {message}'
+        super().__init__(self.message)
+
+
+class FastMDAatSoftwareLimit(FastMDAException):
+    """
+    Raised if an actuator is at it's software limit.
+    """
+
+    def __init__(self, actuator_info: ActuatorInfo, message: str = ""):
+        """
+        Init method for FastMDAatSoftwareLimit exception
+
+        :param actuator_info: The ActuatorInfo object of the actuator at the limit
+        :type actuator_info: ActuatorInfo
+        :param message: Detailed message for log
+        :type message: str
+        """
+        self.message = f'Actuator {actuator_info.name} at software limit. {message}'
         super().__init__(self.message)
