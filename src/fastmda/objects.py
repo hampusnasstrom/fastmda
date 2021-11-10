@@ -24,18 +24,6 @@ class Detector:
         raise NotImplementedError
 
 
-# class Actuator:
-#     """
-#     Abstract class for the actuator part of the device.
-#     """
-#
-#
-#     def __init__(self):
-#         """
-#         Constructor of the Actuator class.
-#         """
-
-
 class DiscreteActuator:
     """
     Abstract class for a discrete actuator.
@@ -221,10 +209,8 @@ class ContinuousActuator:
 
 
 class DeviceObjects(BaseModel):
-    actuators: Dict[
-        int,
-        Union[DiscreteActuator, ContinuousActuator]
-    ] = Field({}, description="Dictionary of actuator objects")
+    actuators: Dict[int, Union[DiscreteActuator, ContinuousActuator]] = \
+        Field({}, description="Dictionary of actuator objects")
     detectors: Dict[int, Detector] = Field({}, description="Dictionary of detector objects")
 
     class Config:
