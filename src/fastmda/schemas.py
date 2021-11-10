@@ -5,10 +5,10 @@ from pydantic import BaseModel, Field
 
 
 class DeviceInfoBase(BaseModel):
-    name: str
     device_type: str = Field(...,
                              description="The type of device, corresponds to the python script where the Device " +
-                                         "class is defined without the .py extension")
+                                         "class is defined without the .py extension.")
+    name: str = Field(..., description="A user readable name for the device, should be unique.")
     args: Dict[str, Any]
 
 

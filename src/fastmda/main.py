@@ -14,18 +14,59 @@ from fastmda.routers import devices
 from sqlalchemy.orm import Session
 
 description = """
-This is the OpenAPI interface for the fastMDA multi dimensional acquisition server
+This is the OpenAPI interface for the fastMDA multi dimensional acquisition server.
+
+## Devices
+
+The device is the hardware connected to the measurement server which controls your actuators and detectors. 
+You will be able to:
+
+* **Create** devices.
+* **Connect/disconnect** devices.
+
+### Actuators
+
+Anything that actuates (motor, filter, etc...).
+
+#### Discrete
+
+#### Continuous 
+
+### Detectors
+
+Anything that detects (spectrometer, camera, sensor, etc...).
+
+## Measurements
+
+Methods for creating and controlling the measurements running on the server.
+
+## Users
+
+Methods for controlling the users of the measurement server.
+
 
 """
 
 tags_metadata = [
     {
         "name": "devices",
-        "description": "Operations with devices",
+        "description": "Operations for **creating** and **connecting** devices",
+    },
+    {
+        "name": "actuators",
+        "description": "Controls for all actuators",
+    },
+    {
+        "name": "detectors",
+        "description": "Controls for all detectors"
+    },
+    {
+        "name": "measurements",
+        "description": "Operations for **creating** and **starting** measurements"
     },
     {
         "name": "users",
-        "description": "Manage users."
+        "description": "Manage users"
     },
 ]
 
