@@ -24,28 +24,28 @@ class Detector:
         raise NotImplementedError
 
 
-class Actuator:
+# class Actuator:
+#     """
+#     Abstract class for the actuator part of the device.
+#     """
+#
+#
+#     def __init__(self):
+#         """
+#         Constructor of the Actuator class.
+#         """
+
+
+class DiscreteActuator:
     """
-    Abstract class for the actuator part of the device.
+    Abstract class for a discrete actuator.
     """
     actuator_info: schemas.ActuatorInfo()  # Should be overwritten by implementing class
 
     def __init__(self):
         """
-        Constructor of the Actuator class.
-        """
-
-
-class DiscreteActuator(Actuator):
-    """
-    Abstract class for a discrete actuator.
-    """
-
-    def __init__(self):
-        """
         Constructor of the DiscreteActuator class.
         """
-        super().__init__()
         self._invalid_positions = []
         self._units = schemas.Unit()
 
@@ -136,16 +136,16 @@ class DiscreteActuator(Actuator):
             self._set_position(position_index)
 
 
-class ContinuousActuator(Actuator):
+class ContinuousActuator:
     """
     Abstract class for a continuous actuator.
     """
+    actuator_info: schemas.ActuatorInfo()  # Should be overwritten by implementing class
 
     def __init__(self):
         """
         Constructor of the ContinuousActuator class.
         """
-        super().__init__()
         self._software_limits = (-float("inf"), float("inf"))
         self._units = schemas.Unit()
 
@@ -221,7 +221,10 @@ class ContinuousActuator(Actuator):
 
 
 class DeviceObjects(BaseModel):
-    actuators: Dict[int, Actuator] = Field({}, description="Dictionary of actuator objects")
+    actuators: Dict[
+        int,
+        Union[DiscreteActuator, ContinuousActuator]
+    ] = Field({}, description="Dictionary of actuator objects")
     detectors: Dict[int, Detector] = Field({}, description="Dictionary of detector objects")
 
     class Config:
