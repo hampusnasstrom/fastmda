@@ -11,8 +11,6 @@ from fastmda.database import engine, SessionLocal
 from fastmda.schemas import DeviceInfo
 from fastmda.routers import devices
 
-from sqlalchemy.orm import Session
-
 description = """
 This is the OpenAPI interface for the fastMDA multi dimensional acquisition server.
 
@@ -115,7 +113,7 @@ async def build_device_dict():
 
 @app.on_event("shutdown")
 async def disconnect_devices():
-    print("Got here")
+    print("Server shutting down, disconnecting all devices.")
     # Disconnect all devices
     with SessionLocal() as db:
         for device_id in device_dict:

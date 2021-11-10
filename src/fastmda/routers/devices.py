@@ -57,7 +57,6 @@ async def connect_device(device_id: int = Path(..., description="The id of the d
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found")
     try:
         if device_dict[device_id].connect():
-            print("Got here")
             return crud.update_device_connection_status(db, device_id, device_dict[device_id].is_connected())
     except NotImplementedError:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED,
