@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from fastapi import APIRouter, Path, HTTPException, status, Depends
 from sqlalchemy.orm import Session
@@ -22,6 +22,11 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@router.get("/", response_model=List[DeviceInfo])
+async def get_devices(db: Session = Depends(get_db)):
+    return crud.get_device_infos(db)
 
 
 @router.get("/device_types", response_model=Dict[str, DeviceType])
