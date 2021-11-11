@@ -418,6 +418,16 @@ class ContinuousActuator(__ContinuousValue, ABC):
         self.actuator_id = actuator_id
         self.parent = parent
 
+    @property
+    @abstractmethod
+    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+        """
+        Getter method for the settings property. Should return a dict with integer keys and setting object values.
+
+        :return: A dictionary of all the settings.
+        :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
+        """
+
     def set_value(self, value: float):
         """
         Method for setting the value of the actuator.
