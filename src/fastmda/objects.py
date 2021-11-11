@@ -1,245 +1,605 @@
+from __future__ import annotations
+from abc import ABC, abstractmethod
 from typing import List, Dict, Tuple, Union
 
-from pydantic import BaseModel, Field
+from xarray import DataArray, Dataset
 
 from fastmda import schemas
-from fastmda.exceptions import FastMDAatSoftwareLimit
+from fastmda.exceptions import FastMDAatSoftwareLimit, FastMDAatHardwareLimit, FastMDAatSoftSettingLimit, \
+    FastMDAatHardSettingLimit, FastMDAisBusy
 
 
-class Detector:
+class __Value(ABC):
     """
-    Abstract class for the detector part of the device.
+    Hidden base class for value.
     """
-
-    def __init__(self, dimensionality: int = 1):
-        """
-        Constructor for the super class
-
-        :param dimensionality: The dimensionality of the detector, i.e. the dimension of the output array.
-        :type dimensionality: int
-        """
-        self.dimensionality = dimensionality
-
-    def acquire(self):
-        raise NotImplementedError
-
-
-class DiscreteActuator:
-    """
-    Abstract class for a discrete actuator.
-    """
-    actuator_info: schemas.ActuatorInfo()  # Should be overwritten by implementing class
-
     def __init__(self):
         """
-        Constructor of the DiscreteActuator class.
+        Init method for __Value class.
         """
-        self._invalid_positions = []
-        self._units = schemas.Unit()
 
-    def get_position_values(self) -> List[str]:
+    @property
+    @abstractmethod
+    def name(self) -> str:
         """
-        Get a list of all the options as strings, should be overridden in subclass.
+        Abstract property getter method for the name of the value.
 
-        :return: list of all the options as strings.
-        :rtype: List[str]
-        """
-        raise NotImplementedError
-
-    def get_position(self) -> int:
-        """
-        Get the index of the current position, should be overridden in subclass.
-
-        :return: Index of current position.
-        :rtype: int
-        """
-        raise NotImplementedError
-
-    def _set_position(self, position_index: int):
-        """
-        Private method for setting the position of the actuator, should be overridden in subclass.
-
-        :param position_index: Index of the position to set.
-        :type position_index: int
-        :return: None
-        :rtype: None
-        """
-        raise NotImplementedError
-
-    def get_units(self) -> schemas.Unit:
-        """
-        Method for getting the units of the positions (if any).
-
-        :return: The units
-        :rtype: fastmda.schemas.Unit
-        """
-        return self._units
-
-    def get_position_value(self) -> str:
-        """
-        Convenience method for getting the string value of the current position.
-
-        :return: The string value of the current position.
+        :return: The name of the value instance
         :rtype: str
         """
-        return self.get_position_values()[self.get_position()]
 
-    def set_invalid_positions(self, invalid_position: int):
+    @property
+    @abstractmethod
+    def unit(self) -> schemas.Unit:
         """
-        Method for setting temporarily invalid positions.
+        Abstract property getter method for the unit of the value.
 
-        :param invalid_position: The index of the invalid position.
-        :type invalid_position: int
-        :return: None
-        :rtype: None
+        :return: The unit of the value.
+        :rtype: fastmda.schemas.Unit
         """
-        if invalid_position not in self._invalid_positions:
-            self._invalid_positions.append(invalid_position)
 
-    def set_valid_positions(self, valid_position: int):
+    @abstractmethod
+    def is_able_to_set(self) -> bool:
         """
-        Method for setting temporarily invalid position to be valid again.
+        Method for checking whether the value can be set.
 
-        :param valid_position: The index of the valid position.
-        :type valid_position: int
-        :return: None
-        :rtype: None
+        :return: Whether or not the value can be set.
+        :rtype: bool
         """
-        if valid_position not in self._invalid_positions:
-            self._invalid_positions.remove(valid_position)
-
-    def set_position(self, position_index: int):
-        """
-        Method for setting the position of the actuator.
-
-        :param position_index: Index of the position to set.
-        :type position_index: int
-        :return: None
-        :rtype: None
-        :raises FastMDAatSoftwareLimit: If position is temporarily set as invalid.
-        """
-        if position_index in self._invalid_positions:
-            raise FastMDAatSoftwareLimit(self.actuator_info)
-        else:
-            self._set_position(position_index)
 
 
-class ContinuousActuator:
+class __DiscreteValue(__Value, ABC):
     """
-    Abstract class for a continuous actuator.
+    Hidden base class for discrete value.
     """
-    actuator_info: schemas.ActuatorInfo()  # Should be overwritten by implementing class
+    def __init__(self):
+        """
+        Init method for __DiscreteValue class.
+        """
+        super().__init__()
+        self._invalid_value_index = []
+
+    @abstractmethod
+    def get_value(self) -> str:
+        """
+        Method for getting the current value as a string.
+
+        :return: The current value as a string.
+        :rtype: str
+        """
+
+    @abstractmethod
+    def get_value_options(self) -> List[str]:
+        """
+        Method for getting a list of all optional values.
+
+        :return:
+        :rtype:
+        """
+
+    @abstractmethod
+    def _set_value(self, value_index: int):
+        """
+        Method for setting the current value by the zero indexed position in the value options list.
+
+        :param value_index: The index of the value to set.
+        :type value_index: int
+        :return: None
+        :rtype: None
+        """
+
+    def set_invalid_value(self, invalid_value_index: int):
+        """
+        Method for setting temporarily invalid values.
+
+        :param invalid_value_index: The index of the invalid values.
+        :type invalid_value_index: int
+        :return: None
+        :rtype: None
+        """
+        if invalid_value_index not in self._invalid_value_index:
+            self._invalid_value_index.append(invalid_value_index)
+
+    def get_invalid_values(self) -> List[int]:
+        """
+        Method for getting temporarily invalid value index.
+
+        :return: A list of the index of the temporarily invalid values.
+        :rtype: List[int]
+        """
+        return self._invalid_value_index
+
+    def set_valid_value(self, valid_value_index: int):
+        """
+        Method for setting temporarily invalid values to be valid again.
+
+        :param valid_value_index: The index of the valid value.
+        :type valid_value_index: int
+        :return: None
+        :rtype: None
+        """
+        if valid_value_index not in self._invalid_value_index:
+            self._invalid_value_index.remove(valid_value_index)
+
+
+class __ContinuousValue(__Value, ABC):
+    """
+    Hidden base class for a continuous value.
+    """
 
     def __init__(self):
         """
-        Constructor of the ContinuousActuator class.
+        Init method for __ContinuousValue class.
         """
-        self._software_limits = (-float("inf"), float("inf"))
-        self._units = schemas.Unit()
+        super().__init__()
+        self._soft_limits = (-float("inf"), float("inf"))
 
-    def get_position(self) -> float:
+    @abstractmethod
+    def get_hard_limits(self) -> Tuple[float, float]:
         """
-        Method for getting the position of the actuator, should be overridden in subclass.
-
-        :return: The position of the actuator.
-        :rtype: float
-        """
-        raise NotImplementedError
-
-    def get_hardware_limits(self) -> Tuple[float, float]:
-        """
-        Method for getting the hardware limits of the actuator, should be overridden in subclass.
+        Method for getting the hard limits of the value, should be overridden in subclass.
 
         :return: A tuple of the (lower, upper) limit of the actuator.
         :rtype: Tuple[float, float]
         """
-        raise NotImplementedError
 
-    def _set_position(self, position: float):
+    @abstractmethod
+    def get_value(self) -> float:
         """
-        Private method for setting the position of the actuator, should be overridden in subclass.
+        Method for getting the current value, should be overridden in subclass.
 
-        :param position: Position to set the actuator to.
-        :type position: float
+        :return: The current value.
+        :rtype: float
+        """
+
+    @abstractmethod
+    def _set_value(self, value: float):
+        """
+        Private method for setting the value of the actuator, should be overridden in subclass.
+
+        :param value: Value to set the actuator to.
+        :type value: float
         :return: None
         :rtype: None
         """
-        raise NotImplementedError
 
-    def get_units(self) -> schemas.Unit:
-        """
-        Method for getting the units of the position (if any).
-
-        :return: The units of the position.
-        :rtype: fastmda.schemas.Unit
-        """
-        return self._units
-
-    def get_software_limits(self) -> Tuple[float, float]:
+    def get_soft_limits(self) -> Tuple[float, float]:
         """
         Method for getting the software limits of the actuator.
 
         :return: A tuple of the (lower, upper) limit of the actuator.
         :rtype: Tuple[float, float]
         """
-        return self._software_limits
+        return self._soft_limits
 
-    def set_software_limits(self, limits: Tuple[float, float]):
+    def set_soft_limits(self, limits: Tuple[float, float]):
         """
-        Method for setting the software limits of the actuator.
+        Method for setting the soft limits of the value.
 
-        :param limits: A tuple of the (lower, upper) limit of the actuator. Use (+ or -) float("inf") for no limit.
+        :param limits: A tuple of the (lower, upper) limit of the value. Use (+ or -) float("inf") for no limit.
         :type limits: Tuple[float, float]
         :return: None
         :rtype: None
         """
-        self._software_limits = limits
+        self._soft_limits = limits
 
-    def set_position(self, position: float):
+
+class DiscreteSetting(__DiscreteValue, ABC):
+    """
+    Abstract class for a discrete setting.
+    """
+
+    def __init__(self, setting_id: int, parent: Union[AbstractDevice, DiscreteActuator, ContinuousActuator, Detector]):
         """
-        Method for setting the position of the actuator.
+        Constructor of the DiscreteSetting class.
 
-        :param position: Position to set the actuator to.
-        :type position: float
+        :param setting_id: The unique ID of the setting.
+        :type setting_id: int
+        :param parent: The parent device of the setting.
+        :type parent: Union[AbstractDevice, DiscreteActuator, ContinuousActuator, Detector]
+        """
+        super().__init__()
+        self.setting_id = setting_id
+        self.parent = parent
+
+    def set_value(self, value_index: int):
+        """
+        Method for setting the value of the setting.
+
+        :param value_index: Index of the value to set.
+        :type value_index: int
         :return: None
         :rtype: None
+        :raises FastMDAatSoftSettingLimit: If value is temporarily set as invalid.
+        :raises FastMDAatHardSettingLimit: If index is out of bounds.
+        :raises FastMDAisBusy: If the device is busy.
         """
-        if self._software_limits[0] < position < self._software_limits[1]:
-            self._set_position(position)
+        if not self.is_able_to_set():
+            if isinstance(self.parent, AbstractDevice):
+                device_id = self.parent.device_id
+            else:
+                device_id = self.parent.parent.device_id
+            raise FastMDAisBusy(device_id)
+        if value_index >= len(self.get_value_options()):
+            raise FastMDAatHardSettingLimit(setting_info=self.info)
+        if value_index in self._invalid_value_index:
+            raise FastMDAatSoftSettingLimit(setting_info=self.info)
+        else:
+            self._set_value(value_index)
+
+    @property
+    def info(self) -> schemas.DiscreteSettingInfo:
+        """
+        Getter method for the info property.
+
+        :return: The info for the instance of the discrete setting.
+        :rtype: schemas.DiscreteSettingInfo
+        :raises ValueError: If parent property is not of known type.
+        """
+        if isinstance(self.parent, AbstractDevice):
+            parent_id = self.parent.device_id
+            grandparent_id = None
+        elif isinstance(self.parent, DiscreteActuator) or isinstance(self.parent, ContinuousActuator):
+            parent_id = self.parent.actuator_id
+            grandparent_id = self.parent.parent.device_id
+        elif isinstance(self.parent, Detector):
+            parent_id = self.parent.detector_id
+            grandparent_id = self.parent.parent.device_id
+        else:
+            raise ValueError("parent is not of known type.")
+        return schemas.DiscreteSettingInfo(
+            name=self.name,
+            setting_id=self.setting_id,
+            parent_id=parent_id,
+            grandparent_id=grandparent_id,
+            value=self.get_value(),
+            options=self.get_value_options(),
+            invalid_values=self.get_invalid_values()
+        )
 
 
-class DeviceObjects(BaseModel):
-    actuators: Dict[int, Union[DiscreteActuator, ContinuousActuator]] = \
-        Field({}, description="Dictionary of actuator objects")
-    detectors: Dict[int, Detector] = Field({}, description="Dictionary of detector objects")
+class ContinuousSetting(__ContinuousValue, ABC):
+    """
+    Abstract class for a continuous setting.
+    """
 
-    class Config:
-        arbitrary_types_allowed = True
+    def __init__(self, setting_id: int, parent: Union[AbstractDevice, DiscreteActuator, ContinuousActuator, Detector]):
+        """
+        Constructor of the ContinuousSetting class.
+
+        :param setting_id: The unique ID of the setting.
+        :type setting_id: int
+        :param parent: The parent device of the setting.
+        :type parent: Union[AbstractDevice, DiscreteActuator, ContinuousActuator, Detector]
+        """
+        super().__init__()
+        self.setting_id = setting_id
+        self.parent = parent
+
+    def set_value(self, value: float):
+        """
+        Method for setting the value of the setting.
+
+        :param value: Value to set the setting to.
+        :type value: float
+        :return: None
+        :rtype: None
+        :raises FastMDAatSoftwareLimit: If value is outside soft limits.
+        :raises FastMDAatHardwareLimit: If value is outside hard limits.
+        :raises FastMDAisBusy: If the device is busy.
+        """
+        if not self.is_able_to_set():
+            if isinstance(self.parent, AbstractDevice):
+                device_id = self.parent.device_id
+            else:
+                device_id = self.parent.parent.device_id
+            raise FastMDAisBusy(device_id)
+        hard_limits = self.get_hard_limits()
+        if value < hard_limits[0] or value > hard_limits[1]:
+            raise FastMDAatHardSettingLimit(setting_info=self.info)
+        if self._soft_limits[0] <= value <= self._soft_limits[1]:
+            self._set_value(value)
+        else:
+            raise FastMDAatSoftSettingLimit(setting_info=self.info)
+
+    @property
+    def info(self) -> schemas.ContinuousSettingInfo:
+        """
+        Getter method for the info property.
+
+        :return: The info for the instance of the continuous setting.
+        :rtype: schemas.ContinuousSettingInfo
+        :raises ValueError: If parent property is not of known type.
+        """
+        if isinstance(self.parent, AbstractDevice):
+            parent_id = self.parent.device_id
+            grandparent_id = None
+        elif isinstance(self.parent, DiscreteActuator) or isinstance(self.parent, ContinuousActuator):
+            parent_id = self.parent.actuator_id
+            grandparent_id = self.parent.parent.device_id
+        elif isinstance(self.parent, Detector):
+            parent_id = self.parent.detector_id
+            grandparent_id = self.parent.parent.device_id
+        else:
+            raise ValueError("parent is not of known type.")
+        return schemas.ContinuousSettingInfo(
+            name=self.name,
+            setting_id=self.setting_id,
+            parent_id=parent_id,
+            grandparent_id=grandparent_id,
+            value=self.get_value(),
+            hardware_limits=self.get_hard_limits(),
+            software_limits=self._soft_limits
+        )
 
 
-class AbstractDevice:
+class DiscreteActuator(__DiscreteValue, ABC):
+    """
+    Abstract class for a discrete actuator.
+    """
+
+    def __init__(self, actuator_id: int, parent: AbstractDevice):
+        """
+        Constructor of the DiscreteActuator class.
+
+        :param actuator_id: The unique ID of the actuator.
+        :type actuator_id: int
+        :param parent: The parent device of the actuator.
+        :type parent: AbstractDevice
+        """
+        super().__init__()
+        self.actuator_id = actuator_id
+        self.parent = parent
+
+    @property
+    @abstractmethod
+    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+        """
+        Getter method for the settings property. Should return a dict with integer keys and setting object values.
+
+        :return: A dictionary of all the settings.
+        :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
+        """
+
+    def set_value(self, value_index: int):
+        """
+        Method for setting the value.
+
+        :param value_index: Index of the value to set.
+        :type value_index: int
+        :return: None
+        :rtype: None
+        :raises FastMDAatSoftwareLimit: If value is temporarily set as invalid.
+        :raises FastMDAatHardwareLimit: If index is out of bounds.
+        :raises FastMDAisBusy: If the device is busy.
+        """
+        if not self.is_able_to_set():
+            raise FastMDAisBusy(self.parent.device_id)
+        if value_index >= len(self.get_value_options()):
+            raise FastMDAatHardwareLimit(actuator_info=self.info)
+        if value_index in self._invalid_value_index:
+            raise FastMDAatSoftwareLimit(actuator_info=self.info)
+        else:
+            self._set_value(value_index)
+
+    @property
+    def info(self) -> schemas.DiscreteActuatorInfo:
+        """
+        Getter method for the info property.
+
+        :return: The info for the instance of the discrete actuator.
+        :rtype: schemas.DiscreteActuatorInfo
+        """
+        return schemas.DiscreteActuatorInfo(
+            name=self.name,
+            actuator_id=self.actuator_id,
+            device_id=self.parent.device_id,
+            value=self.get_value(),
+            options=self.get_value_options(),
+            invalid_values=self.get_invalid_values()
+        )
+
+
+class ContinuousActuator(__ContinuousValue, ABC):
+    """
+    Abstract class for a continuous actuator.
+    """
+
+    def __init__(self, actuator_id: int, parent: AbstractDevice):
+        """
+        Constructor of the ContinuousActuator class.
+
+        :param actuator_id: The unique ID of the actuator.
+        :type actuator_id: int
+        :param parent: The parent device of the actuator.
+        :type parent: AbstractDevice
+        """
+        super().__init__()
+        self.actuator_id = actuator_id
+        self.parent = parent
+
+    def set_value(self, value: float):
+        """
+        Method for setting the value of the actuator.
+
+        :param value: Value to set the actuator to.
+        :type value: float
+        :return: None
+        :rtype: None
+        :raises FastMDAatSoftwareLimit: If value is outside software limits.
+        :raises FastMDAatHardwareLimit: If value is outside hardware limits.
+        :raises FastMDAisBusy: If the device is busy.
+        """
+        if not self.is_able_to_set():
+            raise FastMDAisBusy(self.parent.device_id)
+        hard_limits = self.get_hard_limits()
+        if value < hard_limits[0] or value > hard_limits[1]:
+            raise FastMDAatHardwareLimit(actuator_info=self.info)
+        if self._soft_limits[0] <= value <= self._soft_limits[1]:
+            self._set_value(value)
+        else:
+            raise FastMDAatSoftwareLimit(actuator_info=self.info)
+
+    @property
+    def info(self) -> schemas.ContinuousActuatorInfo:
+        """
+        Getter method for the info property.
+
+        :return: The info for the instance of the discrete actuator.
+        :rtype: schemas.DiscreteActuatorInfo
+        """
+        return schemas.ContinuousActuatorInfo(
+            name=self.name,
+            actuator_id=self.actuator_id,
+            device_id=self.parent.device_id,
+            value=self.get_value(),
+            hardware_limits=self.get_hard_limits(),
+            software_limits=self._soft_limits
+        )
+
+
+class Detector(ABC):
+    """
+    Abstract class for the detector part of the device.
+    """
+
+    def __init__(self, detector_id: int, parent: AbstractDevice, dimensionality: int = 1):
+        """
+        Constructor for the super class
+
+        :param detector_id: The unique ID of the detector
+        :type detector_id: int
+        :param parent: The parent device of the detector
+        :type parent: AbstractDevice
+        :param dimensionality: The dimensionality of the detector, i.e. the dimension of the output array.
+        :type dimensionality: int
+        """
+        self.detector_id = detector_id
+        self.parent = parent
+        self.dimensionality = dimensionality
+
+    @property
+    @abstractmethod
+    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+        """
+        Getter method for the settings property. Should return a dict with integer keys and setting object values.
+
+        :return: A dictionary of all the settings.
+        :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
+        """
+
+    @abstractmethod
+    def is_able_to_acquire(self) -> bool:
+        """
+        Method for checking whether the detector is available for acquiring.
+
+        :return: Whether or not the detector can acquire.
+        :rtype: bool
+        """
+
+    @abstractmethod
+    def _acquire(self) -> DataArray:
+        """
+        Method for acquiring data from the detector, should return a DataArray with a name, attributes long_name and
+        units as well as labeled dimension arrays (if dimension > 0).
+
+        :return: The measured data in a DataArray
+        :rtype: xarray.DataArray
+        """
+
+    def acquire(self) -> DataArray:
+        """
+        Method for acquiring data from the detector, returns a DataArray with a name, attributes long_name and
+        units as well as labeled dimension arrays (if dimension > 0).
+
+        :return: The measured data in a DataArray
+        :rtype: xarray.DataArray
+        """
+        if self.is_able_to_acquire():
+            return self._acquire()
+        else:
+            raise FastMDAisBusy(self.parent.device_id)
+
+
+class AbstractDevice(ABC):
     """
     Abstract class to be inherited by any device the controls the communication with actuators and/or detectors.
     """
-    device_type = schemas.DeviceType()  # Should be overridden in subclass
+    @staticmethod
+    @abstractmethod
+    def device_type() -> schemas.DeviceType:
+        pass
 
-    def __init__(self):
+    def __init__(self, device_id: int):
         """
         Constructor of the Device class.
+
+        :param device_id: The unique ID of the device.
+        :type device_id: int
         """
-        self.objects = DeviceObjects()
+        self.device_id = device_id
 
+    @property
+    @abstractmethod
+    def actuators(self) -> Dict[int, Union[DiscreteActuator, ContinuousActuator]]:
+        """
+        Getter method for the actuators property. Should return a dict with integer keys and actuator object values.
+
+        :return: A dictionary of all the actuators.
+        :rtype: Dict[int, Union[DiscreteActuator, ContinuousActuator]]
+        """
+
+    @property
+    @abstractmethod
+    def detectors(self) -> Dict[int, Detector]:
+        """
+        Getter method for the detectors property. Should return a dict with integer keys and detector object values.
+
+        :return: A dictionary of all the detectors.
+        :rtype: Dict[int, Detector]
+        """
+
+    @property
+    @abstractmethod
+    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+        """
+        Getter method for the settings property. Should return a dict with integer keys and setting object values.
+
+        :return: A dictionary of all the settings.
+        :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
+        """
+
+    @abstractmethod
     def connect(self) -> bool:
-        raise NotImplementedError
+        """
+        Method for connecting to the device. Should return True when the device is connected, otherwise a
+        fastmda.exceptions.FastMDAConnectFailed error should be raised.
 
+        :return: The success of the connection.
+        :rtype: bool
+        """
+
+    @abstractmethod
     def disconnect(self) -> bool:
-        raise NotImplementedError
+        """
+        Method for connecting to the device. Should return True when the device is disconnected, otherwise a
+        fastmda.exceptions.FastMDADisconnectFailed error should be raised.
 
+        :return: The success of the disconnection. I.e. True when the device is disconnected.
+        :rtype: bool
+        """
+
+    @abstractmethod
     def is_connected(self) -> bool:
-        raise NotImplementedError
+        """
+        Method for getting whether the device is connected or not.
+
+        :return: Whether the device is connected or not.
+        :rtype: bool
+        """
 
 
-class AbstractMeasurement:
+class AbstractMeasurement(ABC):
     """
     Abstract class to be inherited by any measurement implemented on the server side.
     """
@@ -248,13 +608,30 @@ class AbstractMeasurement:
         """
         Constructor for the Measurement class.
         """
-        self.is_busy = False
 
+    @abstractmethod
     def start(self):
-        raise NotImplementedError
+        """
+        Method for starting the measurement.
 
+        :return: None
+        :rtype: None
+        """
+
+    @abstractmethod
     def abort(self):
-        raise NotImplementedError
+        """
+        Method for aborting the measurement.
 
-    def get_result(self):
-        raise NotImplementedError
+        :return: None
+        :rtype: None
+        """
+
+    @abstractmethod
+    def get_result(self) -> Dataset:
+        """
+        Method for getting the Dataset with the current measurement data.
+
+        :return: The measurement data recorded so far.
+        :rtype: xarray.Dataset
+        """

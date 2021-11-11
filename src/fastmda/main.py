@@ -93,9 +93,11 @@ async def build_device_dict():
         except ModuleNotFoundError:
             raise FastMDAModuleError(module_name)
         try:
-            device_type = device_module.Device.device_type
+            device_type = device_module.Device.device_type()
         except AttributeError:
             raise FastMDAImplementationError(device_module, "Does not subclass AbstractDevice.")
+        except TypeError as e:
+            raise FastMDAImplementationError(device_module, str(e))
         device_types_info[device_module_info.name] = device_type
         device_types_modules[device_module_info.name] = device_module
     with SessionLocal() as db:
@@ -104,11 +106,13 @@ async def build_device_dict():
             device_info = DeviceInfo.from_orm(device_info_orm)
             device_module = device_types_modules[device_info.device_type]
             try:
-                device_dict[device_info.id] = device_module.Device(**device_info.args)
+                device_dict[device_info.id] = device_module.Device(device_info.id, **device_info.args)
                 device_info_orm.is_connected = device_dict[device_info.id].is_connected()
                 db.commit()
             except AttributeError:
                 raise FastMDAImplementationError(device_module, "No Device class implementation.")
+            except TypeError as e:
+                raise FastMDAImplementationError(device_module, str(e))
 
 
 @app.on_event("shutdown")

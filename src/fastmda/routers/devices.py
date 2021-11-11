@@ -43,10 +43,13 @@ async def add_device(device_info: DeviceInfoCreate, db: Session = Depends(get_db
     device_info = DeviceInfo.from_orm(device_info_orm)
     device_module = device_types_modules[device_info.device_type]
     try:
-        device_dict[device_info.id] = device_module.Device(**device_info.args)
+        device_dict[device_info.id] = device_module.Device(device_info.id, **device_info.args)
     except AttributeError:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED,
                             detail=f'{device_module.__name__} has not implemented a Device class.')
+    except TypeError as e:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                            detail=f'{device_module.__name__} has not implemented Device class according to spec. {e}')
     return device_info
 
 

@@ -1,8 +1,9 @@
-from types import ModuleType
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List, Tuple
 
 from pydantic import BaseModel, Field
 
+
+# Devices:
 
 class DeviceInfoBase(BaseModel):
     device_type: str = Field(...,
@@ -25,15 +26,62 @@ class DeviceInfo(DeviceInfoBase):
 
 
 class DeviceType(BaseModel):
-    name: str = Field(None, description="Name of the device type.")
-    device_description: Optional[str] = Field(None, description="Description of the device type.")
-    args: Dict[str, str] = Field(None, description="Dict of arguments needed to construct the device.")
+    name: str = Field(..., description="Name of the device type.")
+    device_description: Optional[str] = Field(..., description="Description of the device type.")
+    args: Dict[str, str] = Field(..., description="Dict of arguments needed to construct the device.")
 
+
+# Actuators:
 
 class ActuatorInfo(BaseModel):
-    name: str = Field(None, description="Name of the actuator")
-    major_axis: bool = Field(True, description="Major axis or not")
+    name: str = Field(..., description="Name of the actuator to display to user.")
+    actuator_id: int = Field(..., description="Unique id of the actuator.")
+    device_id: int = Field(..., description="Unique id of the parent device.")
 
+
+class DiscreteActuatorInfo(ActuatorInfo):
+    value: str = Field(..., description="Current position of the actuator.")
+    options: List[str] = Field(..., description="A list of all the possible values.")
+    invalid_values: List[int] = Field([], description="A list of all the options which have been software disabled.")
+
+
+class ContinuousActuatorInfo(ActuatorInfo):
+    value: float = Field(..., description="Current position of the actuator.")
+    hardware_limits: Tuple[float, float] = Field(...,
+                                                 description="A tuple of the (lower, upper) hardware limits of the " +
+                                                             "actuator.")
+    software_limits: Tuple[float, float] = Field((-float("inf"), float("inf")),
+                                                 description="A tuple of the (lower, upper) software limits of the " +
+                                                             "actuator.")
+
+
+# Settings:
+
+class SettingInfo(BaseModel):
+    name: str = Field(..., description="Name of the actuator to display to user.")
+    actuator_id: int = Field(..., description="Unique id of the actuator.")
+    parent_id: int = Field(..., description="Unique id of the parent device.")
+    grandparent_id: int = Field(None, description="If the parent device is an actuator or detector, this is the" + \
+                                                  "unique ID of their parent device, otherwise None.")
+
+
+class DiscreteSettingInfo(SettingInfo):
+    value: str = Field(..., description="Current value of the setting.")
+    options: List[str] = Field(..., description="A list of all the possible values.")
+    invalid_values: List[int] = Field([], description="A list of all the options which have been software disabled.")
+
+
+class ContinuousSettingInfo(SettingInfo):
+    value: float = Field(..., description="Current value of the setting.")
+    hard_limits: Tuple[float, float] = Field(...,
+                                             description="A tuple of the (lower, upper) hard limits of the " +
+                                                         "setting.")
+    soft_limits: Tuple[float, float] = Field((-float("inf"), float("inf")),
+                                             description="A tuple of the (lower, upper) soft limits of the " +
+                                                         "setting.")
+
+
+# Additional:
 
 class Unit(BaseModel):
     str_repr: str = Field("", description="A string representation of the unit.")
