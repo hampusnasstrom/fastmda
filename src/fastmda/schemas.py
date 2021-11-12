@@ -47,12 +47,12 @@ class DiscreteActuatorInfo(ActuatorInfo):
 
 class ContinuousActuatorInfo(ActuatorInfo):
     value: float = Field(..., description="Current position of the actuator.")
-    hardware_limits: Tuple[float, float] = Field(...,
-                                                 description="A tuple of the (lower, upper) hardware limits of the " +
-                                                             "actuator.")
-    software_limits: Tuple[float, float] = Field((-float("inf"), float("inf")),
-                                                 description="A tuple of the (lower, upper) software limits of the " +
-                                                             "actuator.")
+    hardware_limits: Tuple[float] = Field(...,
+                                          description="A tuple of the (lower, upper) hardware limits of the " +
+                                                      "actuator.")
+    software_limits: Tuple[float] = Field((None, None),
+                                          description="A tuple of the (lower, upper) software limits of the " +
+                                                      "actuator.")
 
 
 # Settings:
