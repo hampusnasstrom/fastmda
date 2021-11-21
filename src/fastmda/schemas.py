@@ -55,6 +55,15 @@ class ContinuousActuatorInfo(ActuatorInfo):
                                                       "actuator.")
 
 
+# Detector:
+
+class DetectorInfo(BaseModel):
+    name: str = Field(..., description="Name of the detector to display to the user.")
+    detector_id: int = Field(..., description="Unique (for the device) ID of the detector.")
+    device_id: int = Field(..., description="Unique ID of the parent device.")
+    dimensionality: int = Field(..., description="Dimensionality of the detector.")
+
+
 # Settings:
 
 class SettingInfo(BaseModel):

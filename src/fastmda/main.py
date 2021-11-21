@@ -9,7 +9,7 @@ from fastmda.globals import *
 from fastmda import models, device_types, crud
 from fastmda.database import engine, SessionLocal
 from fastmda.schemas import DeviceInfo
-from fastmda.routers import devices, actuators
+from fastmda.routers import devices, actuators, detectors
 
 description = """
 This is the OpenAPI interface for the fastMDA multi dimensional acquisition server.
@@ -81,6 +81,7 @@ app = FastAPI(
 
 app.include_router(devices.router)
 app.include_router(actuators.router)
+app.include_router(detectors.router)
 
 models.Base.metadata.create_all(bind=engine)
 

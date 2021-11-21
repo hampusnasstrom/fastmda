@@ -1,6 +1,6 @@
 from typing import Dict, List, Union
 
-from fastapi import APIRouter, Path, HTTPException, status, Depends
+from fastapi import APIRouter, Path, HTTPException, status, Depends, Query
 from sqlalchemy.orm import Session
 
 from fastmda import crud, schemas
@@ -25,7 +25,7 @@ def get_db():
 
 
 @router.get("/discrete", response_model=List[schemas.DiscreteActuatorInfo])
-async def get_discrete_actuators(device_id: int = Path(..., description="The ID of the device.")):
+async def get_all_discrete_actuators(device_id: int = Path(..., description="The ID of the device.")):
     try:
         return [act.info for _, act in device_dict[device_id].actuators.items() if isinstance(act, DiscreteActuator)]
     except KeyError:
@@ -33,7 +33,7 @@ async def get_discrete_actuators(device_id: int = Path(..., description="The ID 
 
 
 @router.get("/continuous", response_model=List[schemas.ContinuousActuatorInfo])
-async def get_continuous_actuators(device_id: int = Path(..., description="The ID of the device.")):
+async def get_all_continuous_actuators(device_id: int = Path(..., description="The ID of the device.")):
     try:
         return [act.info for _, act in device_dict[device_id].actuators.items() if isinstance(act, ContinuousActuator)]
     except KeyError:
@@ -67,7 +67,7 @@ async def get_actuator_value(device_id: int = Path(..., description="The ID of t
 
 
 @router.put("/{actuator_id}/value", response_model=Union[str, float])
-async def set_actuator_value(value: Union[int, float],
+async def set_actuator_value(value: Union[int, float] = Query(..., description="The value to set the actuator to."),
                              device_id: int = Path(..., description="The ID of the device."),
                              actuator_id: int = Path(..., description="The ID of the actuator.")):
     try:

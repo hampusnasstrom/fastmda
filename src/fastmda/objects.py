@@ -498,6 +498,16 @@ class Detector(ABC):
         :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
         """
 
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """
+        Abstract property getter method for the name of the detector.
+
+        :return: The name of the detector instance
+        :rtype: str
+        """
+
     @abstractmethod
     def is_able_to_acquire(self) -> bool:
         """
@@ -529,6 +539,21 @@ class Detector(ABC):
             return self._acquire()
         else:
             raise FastMDAisBusy(self.parent.device_id)
+
+    @property
+    def info(self):
+        """
+        Getter method for the info property.
+
+        :return: The info for the instance of the detector.
+        :rtype: schemas.DetectorInfo
+        """
+        return schemas.DetectorInfo(
+            name=self.name,
+            actuator_id=self.detector_id,
+            device_id=self.parent.device_id,
+            dimensionality=self.dimensionality
+        )
 
 
 class AbstractDevice(ABC):
