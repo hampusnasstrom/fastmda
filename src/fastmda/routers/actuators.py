@@ -91,7 +91,7 @@ async def set_actuator_value(value: Union[int, float] = Query(..., description="
                                    f"{device.actuators[actuator_id].get_soft_limits()}")
 
 
-@router.get("/{actuator_id]/settings",
+@router.get("/{actuator_id}/settings",
             response_model=List[Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo]])
 async def get_all_actuator_settings(device_id: int = Path(..., description="The ID of the device."),
                                     actuator_id: int = Path(..., description="The ID of the actuator.")):
@@ -105,7 +105,7 @@ async def get_all_actuator_settings(device_id: int = Path(..., description="The 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
 
 
-@router.get("/{actuator_id]/setting/{setting_id}",
+@router.get("/{actuator_id}/setting/{setting_id}",
             response_model=Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo])
 async def get_actuator_setting(device_id: int = Path(..., description="The ID of the device."),
                                actuator_id: int = Path(..., description="The ID of the actuator."),
@@ -124,7 +124,7 @@ async def get_actuator_setting(device_id: int = Path(..., description="The ID of
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator setting with ID {setting_id}.")
 
 
-@router.get("/{actuator_id]/setting/{setting_id}/value", response_model=Union[str, float])
+@router.get("/{actuator_id}/setting/{setting_id}/value", response_model=Union[str, float])
 async def get_actuator_setting_value(device_id: int = Path(..., description="The ID of the device."),
                                      actuator_id: int = Path(..., description="The ID of the actuator."),
                                      setting_id: int = Path(..., description="The ID of the setting.")):
@@ -142,7 +142,7 @@ async def get_actuator_setting_value(device_id: int = Path(..., description="The
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator setting with ID {setting_id}.")
 
 
-@router.put("/{actuator_id]/setting/{setting_id}/value", response_model=Union[str, float])
+@router.put("/{actuator_id}/setting/{setting_id}/value", response_model=Union[str, float])
 async def set_actuator_setting_value(
         value: Union[int, float] = Query(..., description="The value to set the setting to."),
         device_id: int = Path(..., description="The ID of the device."),

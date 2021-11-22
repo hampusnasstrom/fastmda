@@ -46,7 +46,7 @@ async def get_detector(device_id: int = Path(..., description="The ID of the dev
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No detector with ID {detector_id}.")
 
 
-@router.get("/{detector_id]/settings",
+@router.get("/{detector_id}/settings",
             response_model=List[Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo]])
 async def get_all_detector_settings(device_id: int = Path(..., description="The ID of the device."),
                                     detector_id: int = Path(..., description="The ID of the detector.")):
@@ -60,7 +60,7 @@ async def get_all_detector_settings(device_id: int = Path(..., description="The 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No detector with ID {detector_id}.")
 
 
-@router.get("/{detector_id]/setting/{setting_id}",
+@router.get("/{detector_id}/setting/{setting_id}",
             response_model=Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo])
 async def get_detector_setting(device_id: int = Path(..., description="The ID of the device."),
                                detector_id: int = Path(..., description="The ID of the detector."),
@@ -79,7 +79,7 @@ async def get_detector_setting(device_id: int = Path(..., description="The ID of
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No detector setting with ID {setting_id}.")
 
 
-@router.get("/{detector_id]/setting/{setting_id}/value", response_model=Union[str, float])
+@router.get("/{detector_id}/setting/{setting_id}/value", response_model=Union[str, float])
 async def get_detector_setting_value(device_id: int = Path(..., description="The ID of the device."),
                                      detector_id: int = Path(..., description="The ID of the detector."),
                                      setting_id: int = Path(..., description="The ID of the setting.")):
@@ -97,7 +97,7 @@ async def get_detector_setting_value(device_id: int = Path(..., description="The
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No detector setting with ID {setting_id}.")
 
 
-@router.put("/{detector_id]/setting/{setting_id}/value", response_model=Union[str, float])
+@router.put("/{detector_id}/setting/{setting_id}/value", response_model=Union[str, float])
 async def set_detector_setting_value(
         value: Union[int, float] = Query(..., description="The value to set the setting to."),
         device_id: int = Path(..., description="The ID of the device."),
