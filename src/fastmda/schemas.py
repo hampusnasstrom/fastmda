@@ -82,12 +82,12 @@ class DiscreteSettingInfo(SettingInfo):
 
 class ContinuousSettingInfo(SettingInfo):
     value: float = Field(..., description="Current value of the setting.")
-    hard_limits: Tuple[float, float] = Field(...,
-                                             description="A tuple of the (lower, upper) hard limits of the " +
-                                                         "setting.")
-    soft_limits: Tuple[float, float] = Field((None, None),
-                                             description="A tuple of the (lower, upper) soft limits of the " +
-                                                         "setting.")
+    hard_limits: Tuple[float] = Field(...,
+                                      description="A tuple of the (lower, upper) hard limits of the " +
+                                                  "setting.")
+    soft_limits: Tuple[float] = Field((None, None),
+                                      description="A tuple of the (lower, upper) soft limits of the " +
+                                                  "setting.")
 
 
 # Additional:
