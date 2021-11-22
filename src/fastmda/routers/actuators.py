@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from fastmda import crud, schemas
 from fastmda.database import SessionLocal
-from fastmda.exceptions import FastMDAConnectFailed, FastMDAImplementationError
+from fastmda.exceptions import *
 from fastmda.globals import device_dict, device_types_info, device_types_modules
 from fastmda.objects import DiscreteActuator, ContinuousActuator
 
@@ -79,3 +79,13 @@ async def set_actuator_value(value: Union[int, float] = Query(..., description="
         return device.actuators[actuator_id].get_value()
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
+    except FastMDAisBusy:
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=f"The device is busy.")
+    except FastMDAatHardSettingLimit:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                            detail=f"The value of {value} is outside the hard limits of the setting " +
+                                   f"{device.actuators[actuator_id].get_hard_limits()}")
+    except FastMDAatSoftSettingLimit:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                            detail=f"The value of {value} is outside the soft limits of the setting " +
+                                   f"{device.actuators[actuator_id].get_soft_limits()}")

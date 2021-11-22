@@ -68,8 +68,8 @@ class DetectorInfo(BaseModel):
 
 class SettingInfo(BaseModel):
     name: str = Field(..., description="Name of the actuator to display to user.")
-    actuator_id: int = Field(..., description="Unique id of the actuator.")
-    parent_id: int = Field(..., description="Unique id of the parent device.")
+    setting_id: int = Field(..., description="Unique (for the parent) ID of the setting.")
+    parent_id: int = Field(..., description="Unique ID of the parent device.")
     grandparent_id: int = Field(None, description="If the parent device is an actuator or detector, this is the" + \
                                                   "unique ID of their parent device, otherwise None.")
 
@@ -85,7 +85,7 @@ class ContinuousSettingInfo(SettingInfo):
     hard_limits: Tuple[float, float] = Field(...,
                                              description="A tuple of the (lower, upper) hard limits of the " +
                                                          "setting.")
-    soft_limits: Tuple[float, float] = Field((-float("inf"), float("inf")),
+    soft_limits: Tuple[float, float] = Field((None, None),
                                              description="A tuple of the (lower, upper) soft limits of the " +
                                                          "setting.")
 
