@@ -1,11 +1,11 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
-from fastapi import APIRouter, Path, HTTPException, status, Depends
+from fastapi import APIRouter, Path, HTTPException, status, Depends, Query
 from sqlalchemy.orm import Session
 
-from fastmda import crud
+from fastmda import crud, schemas
 from fastmda.database import SessionLocal
-from fastmda.exceptions import FastMDAConnectFailed, FastMDAImplementationError
+from fastmda.exceptions import *
 from fastmda.globals import device_dict, device_types_info, device_types_modules
 from fastmda.schemas import DeviceInfo, DeviceType, DeviceInfoCreate
 
@@ -91,3 +91,83 @@ async def disconnect_device(device_id: int = Path(..., description="The id of th
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=e)
     return device_info
+
+
+@router.get("/{device_id}/settings",
+            response_model=List[Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo]],
+            summary="Get all device settings")
+async def get_all_device_settings(device_id: int = Path(..., description="The ID of the device.")):
+    """
+    Get a list of information on all the settings for the specified device.
+    """
+    try:
+        device = device_dict[device_id]
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
+    return [setting.info for _, setting in device.settings]
+
+
+@router.get("/{device_id}/setting/{setting_id}",
+            response_model=Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo],
+            summary="Get device setting information")
+async def get_device_setting(device_id: int = Path(..., description="The ID of the device."),
+                             setting_id: int = Path(..., description="The ID of the setting.")):
+    """
+    Get the setting information for the specified setting of the specified device.
+    """
+    try:
+        device = device_dict[device_id]
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
+    try:
+        return device.settings[setting_id]
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device setting with ID {setting_id}.")
+
+
+@router.get("/{device_id}/setting/{setting_id}/value", response_model=Union[str, float],
+            summary="Get device setting value")
+async def get_device_setting_value(device_id: int = Path(..., description="The ID of the device."),
+                                   setting_id: int = Path(..., description="The ID of the setting.")):
+    """
+    Get the setting value for the specified setting of the the specified device.
+    """
+    try:
+        device = device_dict[device_id]
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
+    try:
+        return device.settings[setting_id].get_value()
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device setting with ID {setting_id}.")
+
+
+@router.put("/{device_id}/setting/{setting_id}/value", response_model=Union[str, float],
+            summary="Set device setting value")
+async def set_device_setting_value(
+        value: Union[int, float] = Query(..., description="The value to set the setting to."),
+        device_id: int = Path(..., description="The ID of the device."),
+        setting_id: int = Path(..., description="The ID of the setting.")
+):
+    """
+    Set the setting value for the specified setting of the the specified device.
+    """
+    try:
+        device = device_dict[device_id]
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
+    try:
+        device.settings[setting_id].set_value(value)
+        return device.settings[setting_id].get_value()
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device setting with ID {setting_id}.")
+    except FastMDAisBusy:
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=f"The device is busy.")
+    except FastMDAatHardSettingLimit:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                            detail=f"The value of {value} is outside the hard limits of the setting " +
+                                   f"{device.settings[setting_id].get_hard_limits()}")
+    except FastMDAatSoftSettingLimit:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                            detail=f"The value of {value} is outside the soft limits of the setting " +
+                                   f"{device.settings[setting_id].get_soft_limits()}")

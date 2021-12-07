@@ -27,7 +27,7 @@ async def get_all_detectors(device_id: int = Path(..., description="The ID of th
 async def get_detector(device_id: int = Path(..., description="The ID of the device."),
                        detector_id: int = Path(..., description="The ID of the detector.")):
     """
-    Get the information for the specified detector of the the specified device.
+    Get the information for the specified detector of the specified device.
     """
     try:
         device = device_dict[device_id]
@@ -45,7 +45,7 @@ async def get_detector(device_id: int = Path(..., description="The ID of the dev
 async def get_all_detector_settings(device_id: int = Path(..., description="The ID of the device."),
                                     detector_id: int = Path(..., description="The ID of the detector.")):
     """
-    Get a list of information on all the settings for the specified detector of the the specified device.
+    Get a list of information on all the settings for the specified detector of the specified device.
     """
     try:
         device = device_dict[device_id]
@@ -64,7 +64,7 @@ async def get_detector_setting(device_id: int = Path(..., description="The ID of
                                detector_id: int = Path(..., description="The ID of the detector."),
                                setting_id: int = Path(..., description="The ID of the setting.")):
     """
-    Get the setting information for the specified setting for the specified detector of the the specified device.
+    Get the setting information for the specified setting for the specified detector of the specified device.
     """
     try:
         device = device_dict[device_id]
@@ -86,7 +86,7 @@ async def get_detector_setting_value(device_id: int = Path(..., description="The
                                      detector_id: int = Path(..., description="The ID of the detector."),
                                      setting_id: int = Path(..., description="The ID of the setting.")):
     """
-    Get the setting value for the specified setting for the specified detector of the the specified device.
+    Get the setting value for the specified setting for the specified detector of the specified device.
     """
     try:
         device = device_dict[device_id]
@@ -111,7 +111,7 @@ async def set_detector_setting_value(
         setting_id: int = Path(..., description="The ID of the setting.")
 ):
     """
-    Set the setting value for the specified setting for the specified detector of the the specified device.
+    Set the setting value for the specified setting for the specified detector of the specified device.
     """
     try:
         device = device_dict[device_id]
