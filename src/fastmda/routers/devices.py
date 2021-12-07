@@ -24,26 +24,39 @@ def get_db():
         db.close()
 
 
-@router.get("/", response_model=List[DeviceInfo])
+@router.get("/", response_model=List[DeviceInfo], summary="Get all device instances")
 async def get_devices(db: Session = Depends(get_db)):
+    """
+    Get a list of information for all device instances.
+    """
     return crud.get_device_infos(db)
 
 
-@router.get("/device_types", response_model=Dict[str, DeviceType])
+@router.get("/device_types", response_model=Dict[str, DeviceType], summary="Get all device types")
 async def get_device_types():
+    """
+    Get a list of all the device types that can be instantiated.
+    """
     return device_types_info
 
 
-@router.get("/{device_id}", response_model=DeviceInfo)
+@router.get("/{device_id}", response_model=DeviceInfo, summary="Get device information")
 async def get_device(device_id: int = Path(..., description="The id of the device"), db: Session = Depends(get_db)):
+    """
+    Get the information for the specified device.
+    """
     device_info = crud.get_device_info(db, device_id)
     if device_info is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found")
     return device_info
 
 
-@router.post("/add_device", response_model=DeviceInfo, status_code=status.HTTP_201_CREATED)
+@router.post("/add_device", response_model=DeviceInfo, status_code=status.HTTP_201_CREATED,
+             summary="Add a device instance")
 async def add_device(device_info: DeviceInfoCreate, db: Session = Depends(get_db)):
+    """
+    Add a new instance of a device.
+    """
     device_info_orm = crud.create_device_info(db, device_info)
     device_info = DeviceInfo.from_orm(device_info_orm)
     device_module = device_types_modules[device_info.device_type]
@@ -58,8 +71,11 @@ async def add_device(device_info: DeviceInfoCreate, db: Session = Depends(get_db
     return device_info
 
 
-@router.put("/{device_id}/connect", response_model=DeviceInfo)
+@router.put("/{device_id}/connect", response_model=DeviceInfo, summary="Connect the device")
 async def connect_device(device_id: int = Path(..., description="The id of the device"), db: Session = Depends(get_db)):
+    """
+    Connect the specified device.
+    """
     device_info = crud.get_device_info(db, device_id)
     if device_info is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found")
@@ -75,9 +91,12 @@ async def connect_device(device_id: int = Path(..., description="The id of the d
     return device_info
 
 
-@router.put("/{device_id}/disconnect", response_model=DeviceInfo)
+@router.put("/{device_id}/disconnect", response_model=DeviceInfo, summary="Disconnect the device")
 async def disconnect_device(device_id: int = Path(..., description="The id of the device"),
                             db: Session = Depends(get_db)):
+    """
+    Disconnect the specified device.
+    """
     device_info = crud.get_device_info(db, device_id)
     if device_info is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found")
