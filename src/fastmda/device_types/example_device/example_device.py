@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple
 
 from fastmda import schemas
 from fastmda.exceptions import FastMDAConnectFailed
@@ -15,6 +15,7 @@ class MyActuator(DiscreteActuator):
         self._position = 0
         self._position_values = ["off", "on"]
         self._unit = schemas.Unit()
+        self._settings = {1: DelaySetting(1, self)}
 
     @property
     def name(self) -> str:
@@ -22,7 +23,7 @@ class MyActuator(DiscreteActuator):
 
     @property
     def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
-        return {}
+        return self._settings
 
     def get_value(self) -> str:
         return self._position_values[self._position]
@@ -32,7 +33,7 @@ class MyActuator(DiscreteActuator):
 
     async def _set_value(self, value_index: int):
         self._position = value_index
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(self._settings[1].get_value())
 
     @property
     def unit(self) -> schemas.Unit:
@@ -84,3 +85,33 @@ class Device(AbstractDevice):
 
     def is_connected(self) -> bool:
         return self._is_connected
+
+
+class DelaySetting(ContinuousSetting):
+
+    def __init__(self, setting_id: int, parent: Union[AbstractDevice, DiscreteActuator, ContinuousActuator, Detector]):
+        super().__init__(setting_id, parent)
+        self._hard_limits = (0., 1e3)
+        self._wait_time = 0
+        self._name = "Set wait time"
+        self._unit = schemas.Unit(str_rep="Seconds", si_base="s")
+
+    def get_hard_limits(self) -> Tuple[float, float]:
+        return self._hard_limits
+
+    def get_value(self) -> float:
+        return self._wait_time
+
+    async def _set_value(self, value: float):
+        self._wait_time = value
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def unit(self) -> schemas.Unit:
+        return self._unit
+
+    def is_able_to_set(self) -> bool:
+        return True

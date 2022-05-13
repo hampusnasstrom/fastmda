@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Any, List, Tuple
+from typing import Dict, Optional, Any, List, Tuple, Union
 
 from pydantic import BaseModel, Field
 
@@ -47,12 +47,14 @@ class DiscreteActuatorInfo(ActuatorInfo):
 
 class ContinuousActuatorInfo(ActuatorInfo):
     value: float = Field(..., description="Current position of the actuator.")
-    hardware_limits: Tuple[float] = Field(...,
-                                          description="A tuple of the (lower, upper) hardware limits of the " +
-                                                      "actuator.")
-    software_limits: Tuple[float] = Field((None, None),
-                                          description="A tuple of the (lower, upper) software limits of the " +
-                                                      "actuator.")
+    hardware_limits: Tuple[Union[float, None], Union[float, None]] = Field(
+        (None, None),
+        description="A tuple of the (lower, upper) hardware limits of the actuator."
+    )
+    software_limits: Tuple[Union[float, None], Union[float, None]] = Field(
+        (None, None),
+        description="A tuple of the (lower, upper) software limits of the actuator."
+    )
 
 
 # Detector:
@@ -82,12 +84,14 @@ class DiscreteSettingInfo(SettingInfo):
 
 class ContinuousSettingInfo(SettingInfo):
     value: float = Field(..., description="Current value of the setting.")
-    hard_limits: Tuple[float] = Field(...,
-                                      description="A tuple of the (lower, upper) hard limits of the " +
-                                                  "setting.")
-    soft_limits: Tuple[float] = Field((None, None),
-                                      description="A tuple of the (lower, upper) soft limits of the " +
-                                                  "setting.")
+    hard_limits: Tuple[Union[float, None], Union[float, None]] = Field(
+        (None, None),
+        description="A tuple of the (lower, upper) hard limits of the setting."
+    )
+    soft_limits: Tuple[Union[float, None], Union[float, None]] = Field(
+        (None, None),
+        description="A tuple of the (lower, upper) soft limits of the setting."
+    )
 
 
 # Additional:

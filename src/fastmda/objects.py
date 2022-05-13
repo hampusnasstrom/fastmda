@@ -9,10 +9,29 @@ from fastmda.exceptions import FastMDAatSoftwareLimit, FastMDAatHardwareLimit, F
     FastMDAatHardSettingLimit, FastMDAisBusy
 
 
+def within_limit(value: float, limits: Tuple[Union[float, None], Union[float, None]]) -> bool:
+    """
+    Help function for checking if value is within limits where None corresponds to no limit.
+
+    :param value: The value to check if it is within the limit.
+    :type value: float
+    :param limits: A tuple of the (lower, upper) limit of the value, None means no limit.
+    :type limits: Tuple[Union[float, None], Union[float, None]]
+    :return: If the value is within the limits or not.
+    :rtype: bool
+    """
+    return (
+            (limits[0] is None or limits[0] <= value)
+            and
+            (limits[1] is None or value <= limits[1])
+    )
+
+
 class __Value(ABC):
     """
     Hidden base class for value.
     """
+
     def __init__(self):
         """
         Init method for __Value class.
@@ -52,6 +71,7 @@ class __DiscreteValue(__Value, ABC):
     """
     Hidden base class for discrete value.
     """
+
     def __init__(self):
         """
         Init method for __DiscreteValue class.
@@ -133,7 +153,7 @@ class __ContinuousValue(__Value, ABC):
         Init method for __ContinuousValue class.
         """
         super().__init__()
-        self._soft_limits = (-float("inf"), float("inf"))
+        self._soft_limits = (None, None)
 
     @abstractmethod
     def get_hard_limits(self) -> Tuple[float, float]:
@@ -177,7 +197,7 @@ class __ContinuousValue(__Value, ABC):
         """
         Method for setting the soft limits of the value.
 
-        :param limits: A tuple of the (lower, upper) limit of the value. Use (+ or -) float("inf") for no limit.
+        :param limits: A tuple of the (lower, upper) limit of the value. Use None for no limit.
         :type limits: Tuple[float, float]
         :return: None
         :rtype: None
@@ -296,9 +316,9 @@ class ContinuousSetting(__ContinuousValue, ABC):
                 device_id = self.parent.parent.device_id
             raise FastMDAisBusy(device_id)
         hard_limits = self.get_hard_limits()
-        if value < hard_limits[0] or value > hard_limits[1]:
+        if not within_limit(value, hard_limits):
             raise FastMDAatHardSettingLimit(setting_info=self.info)
-        if self._soft_limits[0] <= value <= self._soft_limits[1]:
+        if within_limit(value, self._soft_limits):
             await self._set_value(value)
         else:
             raise FastMDAatSoftSettingLimit(setting_info=self.info)
@@ -329,8 +349,8 @@ class ContinuousSetting(__ContinuousValue, ABC):
             parent_id=parent_id,
             grandparent_id=grandparent_id,
             value=self.get_value(),
-            hardware_limits=self.get_hard_limits(),
-            software_limits=self._soft_limits
+            hard_limits=self.get_hard_limits(),
+            soft_limits=self._soft_limits
         )
 
 
@@ -444,9 +464,9 @@ class ContinuousActuator(__ContinuousValue, ABC):
         if not self.is_able_to_set():
             raise FastMDAisBusy(self.parent.device_id)
         hard_limits = self.get_hard_limits()
-        if value < hard_limits[0] or value > hard_limits[1]:
+        if not within_limit(value, hard_limits):
             raise FastMDAatHardwareLimit(actuator_info=self.info)
-        if self._soft_limits[0] <= value <= self._soft_limits[1]:
+        if within_limit(value, self._soft_limits):
             await self._set_value(value)
         else:
             raise FastMDAatSoftwareLimit(actuator_info=self.info)
@@ -561,6 +581,7 @@ class AbstractDevice(ABC):
     """
     Abstract class to be inherited by any device the controls the communication with actuators and/or detectors.
     """
+
     @staticmethod
     @abstractmethod
     def device_type() -> schemas.DeviceType:

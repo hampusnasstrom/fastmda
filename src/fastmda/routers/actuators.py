@@ -119,7 +119,7 @@ async def get_all_actuator_settings(device_id: int = Path(..., description="The 
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        return [setting.info for _, setting in device.actuators[actuator_id].settings]
+        return [setting.info for _, setting in device.actuators[actuator_id].settings.items()]
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
 
@@ -189,7 +189,7 @@ async def set_actuator_setting_value(
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
     try:
-        actuator.settings[setting_id].set_value(value)
+        await actuator.settings[setting_id].set_value(value)
         return actuator.settings[setting_id].get_value()
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator setting with ID {setting_id}.")
