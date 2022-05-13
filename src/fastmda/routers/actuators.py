@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Union
 
 from fastapi import APIRouter, Path, HTTPException, status, Query
@@ -12,6 +13,26 @@ router = APIRouter(
     prefix="/devices/{device_id}/actuators",
     tags=["actuators"]
 )
+responses = {
+    status.HTTP_404_NOT_FOUND: {
+        "model": schemas.Detail,
+        "description": "Device, actuator and/or setting with given ID not found."
+    },
+    status.HTTP_504_GATEWAY_TIMEOUT: {
+        "model": schemas.Detail,
+        "description": "The set or get of a value could not be performed within the set timeout."
+    },
+    status.HTTP_406_NOT_ACCEPTABLE: {
+        "model": schemas.Detail,
+        "description": "The value to set was not accepted."
+    },
+    status.HTTP_423_LOCKED: {
+        "model": schemas.Detail,
+        "description": "The device is busy."
+    }
+}
+set_timeout = 5
+get_timeout = 0.1
 
 
 # Dependency
@@ -23,7 +44,13 @@ def get_db():
         db.close()
 
 
-@router.get("/discrete", response_model=List[schemas.DiscreteActuatorInfo], summary="Get all discrete actuators")
+@router.get("/discrete", response_model=List[schemas.DiscreteActuatorInfo], summary="Get all discrete actuators",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device with given ID not found."
+                }
+            })
 async def get_all_discrete_actuators(device_id: int = Path(..., description="The ID of the device.")):
     """
     Get a list of information for all discrete actuators of the specified device.
@@ -34,7 +61,13 @@ async def get_all_discrete_actuators(device_id: int = Path(..., description="The
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
 
 
-@router.get("/continuous", response_model=List[schemas.ContinuousActuatorInfo], summary="Get all continuous actuators")
+@router.get("/continuous", response_model=List[schemas.ContinuousActuatorInfo], summary="Get all continuous actuators",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device with given ID not found."
+                }
+            })
 async def get_all_continuous_actuators(device_id: int = Path(..., description="The ID of the device.")):
     """
     Get a list of information for all continuous actuators of the specified device.
@@ -46,7 +79,13 @@ async def get_all_continuous_actuators(device_id: int = Path(..., description="T
 
 
 @router.get("/{actuator_id}", response_model=Union[schemas.DiscreteActuatorInfo, schemas.ContinuousActuatorInfo],
-            summary="Get actuator information")
+            summary="Get actuator information",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device and/or actuator with given ID not found."
+                }
+            })
 async def get_actuator(device_id: int = Path(..., description="The ID of the device."),
                        actuator_id: int = Path(..., description="The ID of the actuator.")):
     """
@@ -62,7 +101,17 @@ async def get_actuator(device_id: int = Path(..., description="The ID of the dev
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
 
 
-@router.get("/{actuator_id}/value", response_model=Union[str, float], summary="Get actuator value")
+@router.get("/{actuator_id}/value", response_model=Union[str, float], summary="Get actuator value",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device and/or actuator with given ID not found."
+                },
+                status.HTTP_504_GATEWAY_TIMEOUT: {
+                    "model": schemas.Detail,
+                    "description": "The value could not be read within the set timeout."
+                }
+            })
 async def get_actuator_value(device_id: int = Path(..., description="The ID of the device."),
                              actuator_id: int = Path(..., description="The ID of the actuator.")):
     """
@@ -73,12 +122,33 @@ async def get_actuator_value(device_id: int = Path(..., description="The ID of t
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        return device.actuators[actuator_id].get_value()
+        return await asyncio.wait_for(device.actuators[actuator_id].get_value(), timeout=get_timeout)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                            detail=f"The value could not be read within the timeout of {get_timeout} s.")
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
 
 
-@router.put("/{actuator_id}/value", response_model=Union[str, float], summary="Set actuator value")
+@router.put("/{actuator_id}/value", response_model=Union[str, float], summary="Set actuator value",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device and/or actuator with given ID not found."
+                },
+                status.HTTP_504_GATEWAY_TIMEOUT: {
+                    "model": schemas.Detail,
+                    "description": "The value could not be set within the set timeout."
+                },
+                status.HTTP_406_NOT_ACCEPTABLE: {
+                    "model": schemas.Detail,
+                    "description": "The value to set was not within the set limits."
+                },
+                status.HTTP_423_LOCKED: {
+                    "model": schemas.Detail,
+                    "description": "The device is busy."
+                }
+            })
 async def set_actuator_value(value: Union[int, float] = Query(..., description="The value to set the actuator to."),
                              device_id: int = Path(..., description="The ID of the device."),
                              actuator_id: int = Path(..., description="The ID of the actuator.")):
@@ -90,8 +160,12 @@ async def set_actuator_value(value: Union[int, float] = Query(..., description="
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        await device.actuators[actuator_id].set_value(value)
-        return device.actuators[actuator_id].get_value()
+        await asyncio.wait_for(device.actuators[actuator_id].set_value(value), timeout=set_timeout)
+        try:
+            return await asyncio.wait_for(device.actuators[actuator_id].get_value(), timeout=get_timeout)
+        except asyncio.TimeoutError:
+            raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                                detail=f"The set could not be read within the timeout of {get_timeout} s.")
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
     except FastMDAisBusy:
@@ -104,11 +178,20 @@ async def set_actuator_value(value: Union[int, float] = Query(..., description="
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"The value of {value} is outside the soft limits of the setting " +
                                    f"{device.actuators[actuator_id].get_soft_limits()}")
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                            detail=f"The value of {value} could not be set within the timeout of {set_timeout} s.")
 
 
 @router.get("/{actuator_id}/settings",
             response_model=List[Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo]],
-            summary="Get all actuator settings")
+            summary="Get all actuator settings",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device and/or actuator with given ID not found."
+                }
+            })
 async def get_all_actuator_settings(device_id: int = Path(..., description="The ID of the device."),
                                     actuator_id: int = Path(..., description="The ID of the actuator.")):
     """
@@ -126,7 +209,13 @@ async def get_all_actuator_settings(device_id: int = Path(..., description="The 
 
 @router.get("/{actuator_id}/setting/{setting_id}",
             response_model=Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo],
-            summary="Get actuator setting information")
+            summary="Get actuator setting information",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device, actuator and/or setting with given ID not found."
+                }
+            })
 async def get_actuator_setting(device_id: int = Path(..., description="The ID of the device."),
                                actuator_id: int = Path(..., description="The ID of the actuator."),
                                setting_id: int = Path(..., description="The ID of the setting.")):
@@ -148,7 +237,17 @@ async def get_actuator_setting(device_id: int = Path(..., description="The ID of
 
 
 @router.get("/{actuator_id}/setting/{setting_id}/value", response_model=Union[str, float],
-            summary="Get actuator setting value")
+            summary="Get actuator setting value",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device, actuator and/or setting with given ID not found."
+                },
+                status.HTTP_504_GATEWAY_TIMEOUT: {
+                    "model": schemas.Detail,
+                    "description": "The value could not be read within the set timeout."
+                }
+            })
 async def get_actuator_setting_value(device_id: int = Path(..., description="The ID of the device."),
                                      actuator_id: int = Path(..., description="The ID of the actuator."),
                                      setting_id: int = Path(..., description="The ID of the setting.")):
@@ -164,13 +263,34 @@ async def get_actuator_setting_value(device_id: int = Path(..., description="The
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
     try:
-        return actuator.settings[setting_id].get_value()
+        return await asyncio.wait_for(actuator.settings[setting_id].get_value(), timeout=set_timeout)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                            detail=f"The value could not be read within the timeout of {get_timeout} s.")
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator setting with ID {setting_id}.")
 
 
 @router.put("/{actuator_id}/setting/{setting_id}/value", response_model=Union[str, float],
-            summary="Set actuator setting value")
+            summary="Set actuator setting value",
+            responses={
+                status.HTTP_404_NOT_FOUND: {
+                    "model": schemas.Detail,
+                    "description": "Device, actuator and/or setting with given ID not found."
+                },
+                status.HTTP_504_GATEWAY_TIMEOUT: {
+                    "model": schemas.Detail,
+                    "description": "The value could not be set within the set timeout."
+                },
+                status.HTTP_406_NOT_ACCEPTABLE: {
+                    "model": schemas.Detail,
+                    "description": "The value to set was not within the set limits."
+                },
+                status.HTTP_423_LOCKED: {
+                    "model": schemas.Detail,
+                    "description": "The device is busy."
+                }
+            })
 async def set_actuator_setting_value(
         value: Union[int, float] = Query(..., description="The value to set the setting to."),
         device_id: int = Path(..., description="The ID of the device."),
@@ -189,8 +309,12 @@ async def set_actuator_setting_value(
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
     try:
-        await actuator.settings[setting_id].set_value(value)
-        return actuator.settings[setting_id].get_value()
+        await asyncio.wait_for(actuator.settings[setting_id].set_value(value), timeout=set_timeout)
+        try:
+            return await asyncio.wait_for(actuator.settings[setting_id].get_value(), timeout=set_timeout)
+        except asyncio.TimeoutError:
+            raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                                detail=f"The set could not be read within the timeout of {get_timeout} s.")
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator setting with ID {setting_id}.")
     except FastMDAisBusy:
@@ -203,3 +327,6 @@ async def set_actuator_setting_value(
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"The value of {value} is outside the soft limits of the setting " +
                                    f"{actuator.settings[setting_id].get_soft_limits()}")
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                            detail=f"The value of {value} could not be set within the timeout of {set_timeout} s.")

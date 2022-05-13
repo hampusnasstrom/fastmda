@@ -40,13 +40,13 @@ class ActuatorInfo(BaseModel):
 
 
 class DiscreteActuatorInfo(ActuatorInfo):
-    value: str = Field(..., description="Current position of the actuator.")
+    # value: str = Field(..., description="Current position of the actuator.")
     options: List[str] = Field(..., description="A list of all the possible values.")
     invalid_values: List[int] = Field([], description="A list of all the options which have been software disabled.")
 
 
 class ContinuousActuatorInfo(ActuatorInfo):
-    value: float = Field(..., description="Current position of the actuator.")
+    # value: float = Field(..., description="Current position of the actuator.")
     hardware_limits: Tuple[Union[float, None], Union[float, None]] = Field(
         (None, None),
         description="A tuple of the (lower, upper) hardware limits of the actuator."
@@ -77,13 +77,13 @@ class SettingInfo(BaseModel):
 
 
 class DiscreteSettingInfo(SettingInfo):
-    value: str = Field(..., description="Current value of the setting.")
+    # value: str = Field(..., description="Current value of the setting.")
     options: List[str] = Field(..., description="A list of all the possible values.")
     invalid_values: List[int] = Field([], description="A list of all the options which have been software disabled.")
 
 
 class ContinuousSettingInfo(SettingInfo):
-    value: float = Field(..., description="Current value of the setting.")
+    # value: float = Field(..., description="Current value of the setting.")
     hard_limits: Tuple[Union[float, None], Union[float, None]] = Field(
         (None, None),
         description="A tuple of the (lower, upper) hard limits of the setting."
@@ -92,6 +92,12 @@ class ContinuousSettingInfo(SettingInfo):
         (None, None),
         description="A tuple of the (lower, upper) soft limits of the setting."
     )
+
+
+# Response:
+
+class Detail(BaseModel):
+    detail: str
 
 
 # Additional:

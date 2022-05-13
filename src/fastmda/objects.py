@@ -80,9 +80,9 @@ class __DiscreteValue(__Value, ABC):
         self._invalid_value_index = []
 
     @abstractmethod
-    def get_value(self) -> str:
+    async def get_value(self) -> str:
         """
-        Method for getting the current value as a string.
+        Asynchronous method for getting the current value as a string.
 
         :return: The current value as a string.
         :rtype: str
@@ -165,9 +165,9 @@ class __ContinuousValue(__Value, ABC):
         """
 
     @abstractmethod
-    def get_value(self) -> float:
+    async def get_value(self) -> float:
         """
-        Method for getting the current value, should be overridden in subclass.
+        Asynchronous method for getting the current value, should be overridden in subclass.
 
         :return: The current value.
         :rtype: float
@@ -273,7 +273,7 @@ class DiscreteSetting(__DiscreteValue, ABC):
             setting_id=self.setting_id,
             parent_id=parent_id,
             grandparent_id=grandparent_id,
-            value=self.get_value(),
+            # value=self.get_value(),
             options=self.get_value_options(),
             invalid_values=self.get_invalid_values()
         )
@@ -348,7 +348,7 @@ class ContinuousSetting(__ContinuousValue, ABC):
             setting_id=self.setting_id,
             parent_id=parent_id,
             grandparent_id=grandparent_id,
-            value=self.get_value(),
+            # value=self.get_value(),
             hard_limits=self.get_hard_limits(),
             soft_limits=self._soft_limits
         )
@@ -415,7 +415,7 @@ class DiscreteActuator(__DiscreteValue, ABC):
             name=self.name,
             actuator_id=self.actuator_id,
             device_id=self.parent.device_id,
-            value=self.get_value(),
+            # value=self.get_value(),
             options=self.get_value_options(),
             invalid_values=self.get_invalid_values()
         )
@@ -483,7 +483,7 @@ class ContinuousActuator(__ContinuousValue, ABC):
             name=self.name,
             actuator_id=self.actuator_id,
             device_id=self.parent.device_id,
-            value=self.get_value(),
+            # value=self.get_value(),
             hardware_limits=self.get_hard_limits(),
             software_limits=self._soft_limits
         )

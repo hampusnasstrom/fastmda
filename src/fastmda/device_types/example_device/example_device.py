@@ -25,7 +25,8 @@ class MyActuator(DiscreteActuator):
     def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
         return self._settings
 
-    def get_value(self) -> str:
+    async def get_value(self) -> str:
+        await asyncio.sleep(0.01)
         return self._position_values[self._position]
 
     def get_value_options(self) -> List[str]:
@@ -33,7 +34,8 @@ class MyActuator(DiscreteActuator):
 
     async def _set_value(self, value_index: int):
         self._position = value_index
-        await asyncio.sleep(self._settings[1].get_value())
+        wait_time = await self._settings[1].get_value()
+        await asyncio.sleep(wait_time)
 
     @property
     def unit(self) -> schemas.Unit:
@@ -99,7 +101,7 @@ class DelaySetting(ContinuousSetting):
     def get_hard_limits(self) -> Tuple[float, float]:
         return self._hard_limits
 
-    def get_value(self) -> float:
+    async def get_value(self) -> float:
         return self._wait_time
 
     async def _set_value(self, value: float):
