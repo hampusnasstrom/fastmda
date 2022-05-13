@@ -17,13 +17,13 @@ but the user can inherit from the `Measurement` class and implement their own if
 
 ## Device
 An abstract class to be implemented by the user for each type of device that needs to be connected. The class needs to
-implement the following methods:
+implement the `self.objects` attribute of the data type `fastmda.objects.DeviceObjects` with attributes:
 ```
-get_actuators(self) -> List[Actuator]
-get_detectors(self) -> List[Detector]
+actuators: Dict[int, Union[DiscreteActuator, ContinuousActuator]]
+detectors: Dict[int, Detector]
 ```
-These should return a list of instances of the `Actuator` and `Detector` classes for each actuator and detector 
-connected to the device. For details on the `Actuator` and `Detector` classes please see the respective headers below.
+For details on the `DiscreteActuator`, `ContinuousActuator` and `Detector` classes please see the respective headers 
+below.
 
 In addition, the derived `Device` class needs to implement a `connect`, `disconnect` and `is_connected` method:
 ```
@@ -49,6 +49,64 @@ The data can be of any dimension, from a sensor giving a single 0-dimensional va
 ## Actuator
 An abstract class to be implemented by the user for each part of a device that can be actuated, i.e. that can receive
 a "set" command.
+### DiscreteActuator
+An actuator with a discrete number of positions. Should implement to following functions:
+```doctest
+def get_position_values(self) -> List[str]:
+    """
+    Get a list of all the options as strings, should be overridden in subclass.
+
+    :return: list of all the options as strings.
+    :rtype: List[str]
+    """
+
+def get_position(self) -> int:
+    """
+    Get the index of the current position, should be overridden in subclass.
+
+    :return: Index of current position.
+    :rtype: int
+    """
+
+def _set_position(self, position_index: int):
+    """
+    Private method for setting the position of the actuator, should be overridden in subclass.
+
+    :param position_index: Index of the position to set.
+    :type position_index: int
+    :return: None
+    :rtype: None
+    """
+```
+### ContinuousActuator
+An actuator which can be set to a continuous position. Should implement to following functions:
+```doctest
+def get_position(self) -> float:
+    """
+    Method for getting the position of the actuator, should be overridden in subclass.
+
+    :return: The position of the actuator.
+    :rtype: float
+    """
+
+def get_hardware_limits(self) -> Tuple[float, float]:
+    """
+    Method for getting the hardware limits of the actuator, should be overridden in subclass.
+
+    :return: A tuple of the (lower, upper) limit of the actuator.
+    :rtype: Tuple[float, float]
+    """
+
+def _set_position(self, position: float):
+    """
+    Private method for setting the position of the actuator, should be overridden in subclass.
+
+    :param position: Position to set the actuator to.
+    :type position: float
+    :return: None
+    :rtype: None
+    """
+```
 
 ## Measurement
 An abstract class to be implemented by the user for custom measurements. The class contains a sequence of operations 

@@ -1,0 +1,6 @@
+fastapi>=0.70.0
+uvicorn>=0.15.0
+pydantic>=1.8.2
+setuptools>=58.5.3
+SQLAlchemy>=1.4.26
+xarray>=0.20.1
