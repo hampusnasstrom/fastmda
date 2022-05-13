@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Dict, Union
 
 from fastmda import schemas
@@ -23,14 +24,16 @@ class MyActuator(DiscreteActuator):
     def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
         return {}
 
-    def get_value(self) -> str:
+    async def get_value(self) -> str:
+        await asyncio.sleep(0.1)
         return self._position_values[self._position]
 
     def get_value_options(self) -> List[str]:
         return self._position_values
 
-    def _set_value(self, value_index: int):
+    async def _set_value(self, value_index: int):
         self._position = value_index
+        await asyncio.sleep(0.1)
 
     @property
     def unit(self) -> schemas.Unit:

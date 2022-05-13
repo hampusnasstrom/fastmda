@@ -73,7 +73,7 @@ async def get_actuator_value(device_id: int = Path(..., description="The ID of t
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        return device.actuators[actuator_id].get_value()
+        return await device.actuators[actuator_id].get_value()
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
 
@@ -90,8 +90,8 @@ async def set_actuator_value(value: Union[int, float] = Query(..., description="
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        device.actuators[actuator_id].set_value(value)
-        return device.actuators[actuator_id].get_value()
+        await device.actuators[actuator_id].set_value(value)
+        return await device.actuators[actuator_id].get_value()
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
     except FastMDAisBusy:

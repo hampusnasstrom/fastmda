@@ -60,7 +60,7 @@ class __DiscreteValue(__Value, ABC):
         self._invalid_value_index = []
 
     @abstractmethod
-    def get_value(self) -> str:
+    async def get_value(self) -> str:
         """
         Method for getting the current value as a string.
 
@@ -78,9 +78,10 @@ class __DiscreteValue(__Value, ABC):
         """
 
     @abstractmethod
-    def _set_value(self, value_index: int):
+    async def _set_value(self, value_index: int):
         """
-        Method for setting the current value by the zero indexed position in the value options list.
+        Asynchronous private method for setting the current value by the zero indexed position in the value options
+        list.
 
         :param value_index: The index of the value to set.
         :type value_index: int
@@ -153,9 +154,9 @@ class __ContinuousValue(__Value, ABC):
         """
 
     @abstractmethod
-    def _set_value(self, value: float):
+    async def _set_value(self, value: float):
         """
-        Private method for setting the value of the actuator, should be overridden in subclass.
+        Asynchronous private method for setting the value of the actuator, should be overridden in subclass.
 
         :param value: Value to set the actuator to.
         :type value: float
@@ -202,9 +203,9 @@ class DiscreteSetting(__DiscreteValue, ABC):
         self.setting_id = setting_id
         self.parent = parent
 
-    def set_value(self, value_index: int):
+    async def set_value(self, value_index: int):
         """
-        Method for setting the value of the setting.
+        Asynchronous method for setting the value of the setting.
 
         :param value_index: Index of the value to set.
         :type value_index: int
@@ -225,7 +226,7 @@ class DiscreteSetting(__DiscreteValue, ABC):
         if value_index in self._invalid_value_index:
             raise FastMDAatSoftSettingLimit(setting_info=self.info)
         else:
-            self._set_value(value_index)
+            await self._set_value(value_index)
 
     @property
     def info(self) -> schemas.DiscreteSettingInfo:
@@ -276,9 +277,9 @@ class ContinuousSetting(__ContinuousValue, ABC):
         self.setting_id = setting_id
         self.parent = parent
 
-    def set_value(self, value: float):
+    async def set_value(self, value: float):
         """
-        Method for setting the value of the setting.
+        Asynchronous method for setting the value of the setting.
 
         :param value: Value to set the setting to.
         :type value: float
@@ -298,7 +299,7 @@ class ContinuousSetting(__ContinuousValue, ABC):
         if value < hard_limits[0] or value > hard_limits[1]:
             raise FastMDAatHardSettingLimit(setting_info=self.info)
         if self._soft_limits[0] <= value <= self._soft_limits[1]:
-            self._set_value(value)
+            await self._set_value(value)
         else:
             raise FastMDAatSoftSettingLimit(setting_info=self.info)
 
@@ -361,9 +362,9 @@ class DiscreteActuator(__DiscreteValue, ABC):
         :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
         """
 
-    def set_value(self, value_index: int):
+    async def set_value(self, value_index: int):
         """
-        Method for setting the value.
+        Asynchronous method for setting the value.
 
         :param value_index: Index of the value to set.
         :type value_index: int
@@ -380,7 +381,7 @@ class DiscreteActuator(__DiscreteValue, ABC):
         if value_index in self._invalid_value_index:
             raise FastMDAatSoftwareLimit(actuator_info=self.info)
         else:
-            self._set_value(value_index)
+            await self._set_value(value_index)
 
     @property
     def info(self) -> schemas.DiscreteActuatorInfo:
@@ -428,9 +429,9 @@ class ContinuousActuator(__ContinuousValue, ABC):
         :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
         """
 
-    def set_value(self, value: float):
+    async def set_value(self, value: float):
         """
-        Method for setting the value of the actuator.
+        Asynchronous method for setting the value of the actuator.
 
         :param value: Value to set the actuator to.
         :type value: float
@@ -446,7 +447,7 @@ class ContinuousActuator(__ContinuousValue, ABC):
         if value < hard_limits[0] or value > hard_limits[1]:
             raise FastMDAatHardwareLimit(actuator_info=self.info)
         if self._soft_limits[0] <= value <= self._soft_limits[1]:
-            self._set_value(value)
+            await self._set_value(value)
         else:
             raise FastMDAatSoftwareLimit(actuator_info=self.info)
 
