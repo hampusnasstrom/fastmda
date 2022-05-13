@@ -24,8 +24,7 @@ class MyActuator(DiscreteActuator):
     def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
         return {}
 
-    async def get_value(self) -> str:
-        await asyncio.sleep(0.1)
+    def get_value(self) -> str:
         return self._position_values[self._position]
 
     def get_value_options(self) -> List[str]:

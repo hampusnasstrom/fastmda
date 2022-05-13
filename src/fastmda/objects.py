@@ -60,7 +60,7 @@ class __DiscreteValue(__Value, ABC):
         self._invalid_value_index = []
 
     @abstractmethod
-    async def get_value(self) -> str:
+    def get_value(self) -> str:
         """
         Method for getting the current value as a string.
 
