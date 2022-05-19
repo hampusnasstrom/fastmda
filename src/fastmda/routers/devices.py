@@ -53,11 +53,11 @@ async def get_device(device_id: int = Path(..., description="The id of the devic
 
 @router.post("/add_device", response_model=DeviceInfo, status_code=status.HTTP_201_CREATED,
              summary="Add a device instance")
-async def add_device(device_info: DeviceInfoCreate, db: Session = Depends(get_db)):
+async def add_device(device_info_input: DeviceInfoCreate, db: Session = Depends(get_db)):
     """
     Add a new instance of a device.
     """
-    device_info_orm = crud.create_device_info(db, device_info)
+    device_info_orm = crud.create_device_info(db, device_info_input)
     device_info = DeviceInfo.from_orm(device_info_orm)
     device_module = device_types_modules[device_info.device_type]
     try:
@@ -123,7 +123,7 @@ async def get_all_device_settings(device_id: int = Path(..., description="The ID
         device = device_dict[device_id]
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
-    return [setting.info for _, setting in device.settings]
+    return [setting.info for _, setting in device.settings.items()]
 
 
 @router.get("/{device_id}/setting/{setting_id}",

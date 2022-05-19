@@ -1,20 +1,20 @@
-from fastmda.exceptions import FastMDAConnectFailed
-from fastmda.device_types import example_device
+from fastmda.device_types.example_device import example_device
+
+from fastapi.testclient import TestClient
+from fastmda.main import app
 
 
 def test_example_device():
-    device_instance = example_device.Device('COM1')
-    print(device_instance.id)
-    print(device_instance.get_detectors())
-    try:
-        device_instance.connect()
-    except FastMDAConnectFailed as e:
-        print(e)
+    device_id = 1
+    device_instance = example_device.Device(device_id, 'COM1')
+    assert device_instance.device_id == device_id
+    assert isinstance(device_instance.detectors, dict)
+    device_instance.connect()
 
 
-def main():
-    test_example_device()
-
-
-if __name__ == "__main__":
-    main()
+def test_get_device_types():
+    with TestClient(app) as client:
+        response = client.get('/devices/device_types')
+        response_json = response.json()
+        print(response_json)
+        assert isinstance(response_json, dict)

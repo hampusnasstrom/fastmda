@@ -153,15 +153,15 @@ class __ContinuousValue(__Value, ABC):
         Init method for __ContinuousValue class.
         """
         super().__init__()
-        self._soft_limits = (None, None)
+        self._soft_limits: Tuple[Union[float, None], Union[float, None]] = (None, None)
 
     @abstractmethod
-    def get_hard_limits(self) -> Tuple[float, float]:
+    def get_hard_limits(self) -> Tuple[Union[float, None], Union[float, None]]:
         """
         Method for getting the hard limits of the value, should be overridden in subclass.
 
         :return: A tuple of the (lower, upper) limit of the actuator.
-        :rtype: Tuple[float, float]
+        :rtype: Tuple[Union[float, None], Union[float, None]]
         """
 
     @abstractmethod
@@ -184,21 +184,21 @@ class __ContinuousValue(__Value, ABC):
         :rtype: None
         """
 
-    def get_soft_limits(self) -> Tuple[float, float]:
+    def get_soft_limits(self) -> Tuple[Union[float, None], Union[float, None]]:
         """
         Method for getting the software limits of the actuator.
 
         :return: A tuple of the (lower, upper) limit of the actuator.
-        :rtype: Tuple[float, float]
+        :rtype: Tuple[Union[float, None], Union[float, None]]
         """
         return self._soft_limits
 
-    def set_soft_limits(self, limits: Tuple[float, float]):
+    def set_soft_limits(self, limits: Tuple[Union[float, None], Union[float, None]]):
         """
         Method for setting the soft limits of the value.
 
         :param limits: A tuple of the (lower, upper) limit of the value. Use None for no limit.
-        :type limits: Tuple[float, float]
+        :type limits: Tuple[Union[float, None], Union[float, None]]
         :return: None
         :rtype: None
         """

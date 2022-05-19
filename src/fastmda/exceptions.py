@@ -138,7 +138,7 @@ class FastMDAatHardSettingLimit(FastMDAException):
         :param message: Detailed message for log
         :type message: str
         """
-        self.message = f'Setting {setting_info.name} with ID {setting_info.actuator_id} with parent ID' + \
+        self.message = f'Setting {setting_info.name} with ID {setting_info.setting_id} with parent ID' + \
                        f'{setting_info.parent_id} (with possible grandparent ID {setting_info.grandparent_id}) ' + \
                        f'at hard limit. {message}'
         super().__init__(self.message)
@@ -158,7 +158,7 @@ class FastMDAatSoftSettingLimit(FastMDAException):
         :param message: Detailed message for log
         :type message: str
         """
-        self.message = f'Setting {setting_info.name} with ID {setting_info.actuator_id} with parent ID' + \
+        self.message = f'Setting {setting_info.name} with ID {setting_info.setting_id} with parent ID' + \
                        f'{setting_info.parent_id} (with possible grandparent ID {setting_info.grandparent_id}) ' + \
                        f'at soft limit. {message}'
         super().__init__(self.message)

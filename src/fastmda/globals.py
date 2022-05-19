@@ -1,14 +1,9 @@
-from fastmda.schemas import DeviceInfoCreate
+from types import ModuleType
+from typing import Dict
 
-# device_info = {
-#     1: DeviceInfoCreate(
-#         name="Some device",
-#         device_type='example_device',
-#         args={
-#             "com_port": "COM1"
-#         }
-#     )
-# }
-device_dict = {}
-device_types_info = {}
-device_types_modules = {}
+from fastmda.objects import AbstractDevice
+from fastmda.schemas import DeviceType
+
+device_dict: Dict[int, AbstractDevice] = {}
+device_types_info: Dict[str, DeviceType] = {}
+device_types_modules: Dict[str, ModuleType] = {}

@@ -1,8 +1,7 @@
 import importlib
-import os
 from pkgutil import iter_modules
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 
 from fastmda.exceptions import FastMDAImplementationError, FastMDAModuleError
 from fastmda.globals import *

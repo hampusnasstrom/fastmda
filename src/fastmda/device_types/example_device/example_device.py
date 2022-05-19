@@ -94,7 +94,7 @@ class DelaySetting(ContinuousSetting):
     def __init__(self, setting_id: int, parent: Union[AbstractDevice, DiscreteActuator, ContinuousActuator, Detector]):
         super().__init__(setting_id, parent)
         self._hard_limits = (0., 1e3)
-        self._wait_time = 0
+        self._wait_time = 0.
         self._name = "Set wait time"
         self._unit = schemas.Unit(str_rep="Seconds", si_base="s")
 

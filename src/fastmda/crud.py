@@ -1,5 +1,4 @@
-import json
-from typing import List
+from typing import List, Union
 
 from sqlalchemy.orm import Session
 
@@ -7,11 +6,13 @@ from fastmda import models, schemas
 
 
 def get_device_infos(db: Session, skip: int = 0, limit: int = 100) -> List[models.DeviceInfo]:
-    return db.query(models.DeviceInfo).offset(skip).limit(limit).all()
+    device_infos: List[models.DeviceInfo] = db.query(models.DeviceInfo).offset(skip).limit(limit).all()
+    return device_infos
 
 
-def get_device_info(db: Session, device_id: int) -> models.DeviceInfo:
-    return db.query(models.DeviceInfo).filter(models.DeviceInfo.id == device_id).first()
+def get_device_info(db: Session, device_id: int) -> Union[models.DeviceInfo, None]:
+    device_info: models.DeviceInfo = db.query(models.DeviceInfo).filter(models.DeviceInfo.id == device_id).first()
+    return device_info
 
 
 def create_device_info(db: Session, device_info: schemas.DeviceInfoCreate) -> models.DeviceInfo:
