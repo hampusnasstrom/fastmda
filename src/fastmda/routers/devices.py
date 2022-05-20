@@ -8,7 +8,8 @@ from fastmda import crud, schemas
 from fastmda.database import SessionLocal
 from fastmda.exceptions import FastMDAConnectFailed, FastMDAisBusy, FastMDAatHardSettingLimit, FastMDAatSoftSettingLimit
 from fastmda.globals import device_dict, device_types_info, device_types_modules
-from fastmda.schemas import DeviceInfo, DeviceType, DeviceInfoCreate
+from fastmda.objects import DiscreteSetting, ContinuousSetting
+from fastmda.schemas import DeviceInfo, DeviceType, DeviceInfoCreate, SettingInfoUnion, ReturnValue, SetValue
 
 router = APIRouter(
     prefix="/devices",
@@ -131,7 +132,7 @@ async def get_all_device_settings(device_id: int = Path(..., description="The ID
 
 
 @router.get("/{device_id}/setting/{setting_id}",
-            response_model=Union[schemas.DiscreteSettingInfo, schemas.ContinuousSettingInfo],
+            response_model=SettingInfoUnion,
             summary="Get device setting information")
 async def get_device_setting(device_id: int = Path(..., description="The ID of the device."),
                              setting_id: int = Path(..., description="The ID of the setting.")):
@@ -143,12 +144,12 @@ async def get_device_setting(device_id: int = Path(..., description="The ID of t
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        return device.settings[setting_id]
+        return SettingInfoUnion.parse_obj(device.settings[setting_id])
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device setting with ID {setting_id}.")
 
 
-@router.get("/{device_id}/setting/{setting_id}/value", response_model=Union[str, float],
+@router.get("/{device_id}/setting/{setting_id}/value", response_model=ReturnValue,
             summary="Get device setting value")
 async def get_device_setting_value(device_id: int = Path(..., description="The ID of the device."),
                                    setting_id: int = Path(..., description="The ID of the setting.")):
@@ -160,12 +161,12 @@ async def get_device_setting_value(device_id: int = Path(..., description="The I
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        return device.settings[setting_id].get_value()
+        return ReturnValue.parse_obj(device.settings[setting_id].get_value())
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device setting with ID {setting_id}.")
 
 
-@router.put("/{device_id}/setting/{setting_id}/value", response_model=Union[str, float],
+@router.put("/{device_id}/setting/{setting_id}/value", response_model=ReturnValue,
             summary="Set device setting value")
 async def set_device_setting_value(
         value: Union[int, float] = Query(..., description="The value to set the setting to."),
@@ -180,9 +181,16 @@ async def set_device_setting_value(
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        await asyncio.wait_for(device.settings[setting_id].set_value(value), timeout=set_timeout)
+        setting = device.settings[setting_id]
+        if issubclass(type(setting), DiscreteSetting) and type(value) is float:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=f"The setting with ID {setting_id} is a discrete setting and cannot be set" +
+                                f" with the value {value} of type '{type(value)}'.")
+        await asyncio.wait_for(setting.set_value(value), timeout=set_timeout)
         try:
-            return await asyncio.wait_for(device.settings[setting_id].get_value(), timeout=set_timeout)
+            return ReturnValue.parse_obj(
+                await asyncio.wait_for(device.settings[setting_id].get_value(), timeout=set_timeout)
+            )
         except asyncio.TimeoutError:
             raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                                 detail=f"The set could not be read within the timeout of {get_timeout} s.")

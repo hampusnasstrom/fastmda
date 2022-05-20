@@ -94,13 +94,25 @@ class ContinuousSettingInfo(SettingInfo):
     )
 
 
+class SettingInfoUnion(BaseModel):
+    __root__: Union[DiscreteSettingInfo, ContinuousSettingInfo]
+
+
 # Response:
 
 class Detail(BaseModel):
     detail: str
 
 
+class ReturnValue(BaseModel):
+    __root__: Union[str, int]
+
+
 # Additional:
+
+class SetValue(BaseModel):
+    __root__: Union[int, float]
+
 
 class Unit(BaseModel):
     str_repr: str = Field("", description="A string representation of the unit.")
