@@ -6,22 +6,34 @@
 
 # -- Path setup --------------------------------------------------------------
 
+
+import sys
+import os
+
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-import fastmda
-import fastmda.routers
-import fastmda.measurements
-import fastmda.device_types
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('..'))
-# sys.path.insert(0, os.path.abspath('../src'))
-# sys.path.insert(0, os.path.abspath('../src/fastmda'))
-# sys.path.insert(0, os.path.abspath('../src/fastmda/device_types'))
-# sys.path.insert(0, os.path.abspath('../src/fastmda/measurements'))
-# sys.path.insert(0, os.path.abspath('../src/fastmda/routers'))
+# sys.path.insert(0, os.path.abspath('.'))
+project = u'fastmda'
+try:
+    import fastmda
+
+    project_dir = os.path.abspath(os.path.join(__file__, "..", ".."))
+    build_dir = os.path.abspath(fastmda.__file__)
+    if on_rtd:
+        print("On Read The Docs")
+        print("build_dir", build_dir)
+        print("project_dir", project_dir)
+    elif not build_dir.startswith(project_dir):
+        raise RuntimeError(
+            "%s looks to come from the system. Fix your PYTHONPATH and restart sphinx."
+            % project
+        )
+except ImportError:
+    raise RuntimeError(
+        "%s is not on the path. Fix your PYTHONPATH and restart sphinx." % project
+    )
 
 
 # -- Project information -----------------------------------------------------
