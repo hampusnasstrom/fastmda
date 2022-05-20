@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Dict, Tuple, Union, Mapping
+from typing import List, Tuple, Union, Mapping
 
 from xarray import DataArray, Dataset
 
@@ -379,7 +379,7 @@ class DiscreteActuator(__DiscreteValue, ABC):
         Getter method for the settings property. Should return a dict with integer keys and setting object values.
 
         :return: A dictionary of all the settings.
-        :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
+        :rtype: Mapping[int, Union[DiscreteSetting, ContinuousSetting]]
         """
 
     async def set_value(self, value_index: int):
@@ -441,12 +441,12 @@ class ContinuousActuator(__ContinuousValue, ABC):
 
     @property
     @abstractmethod
-    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+    def settings(self) -> Mapping[int, Union[DiscreteSetting, ContinuousSetting]]:
         """
         Getter method for the settings property. Should return a dict with integer keys and setting object values.
 
         :return: A dictionary of all the settings.
-        :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
+        :rtype: Mapping[int, Union[DiscreteSetting, ContinuousSetting]]
         """
 
     async def set_value(self, value: float):
@@ -511,12 +511,12 @@ class Detector(ABC):
 
     @property
     @abstractmethod
-    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+    def settings(self) -> Mapping[int, Union[DiscreteSetting, ContinuousSetting]]:
         """
         Getter method for the settings property. Should return a dict with integer keys and setting object values.
 
         :return: A dictionary of all the settings.
-        :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
+        :rtype: Mapping[int, Union[DiscreteSetting, ContinuousSetting]]
         """
 
     @property
@@ -598,32 +598,32 @@ class AbstractDevice(ABC):
 
     @property
     @abstractmethod
-    def actuators(self) -> Dict[int, Union[DiscreteActuator, ContinuousActuator]]:
+    def actuators(self) -> Mapping[int, Union[DiscreteActuator, ContinuousActuator]]:
         """
         Getter method for the actuators property. Should return a dict with integer keys and actuator object values.
 
         :return: A dictionary of all the actuators.
-        :rtype: Dict[int, Union[DiscreteActuator, ContinuousActuator]]
+        :rtype: Mapping[int, Union[DiscreteActuator, ContinuousActuator]]
         """
 
     @property
     @abstractmethod
-    def detectors(self) -> Dict[int, Detector]:
+    def detectors(self) -> Mapping[int, Detector]:
         """
         Getter method for the detectors property. Should return a dict with integer keys and detector object values.
 
         :return: A dictionary of all the detectors.
-        :rtype: Dict[int, Detector]
+        :rtype: Mapping[int, Detector]
         """
 
     @property
     @abstractmethod
-    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+    def settings(self) -> Mapping[int, Union[DiscreteSetting, ContinuousSetting]]:
         """
         Getter method for the settings property. Should return a dict with integer keys and setting object values.
 
         :return: A dictionary of all the settings.
-        :rtype: Dict[int, Union[DiscreteSetting, ContinuousSetting]]
+        :rtype: Mapping[int, Union[DiscreteSetting, ContinuousSetting]]
         """
 
     @abstractmethod

@@ -13,24 +13,7 @@ router = APIRouter(
     prefix="/devices/{device_id}/actuators",
     tags=["actuators"]
 )
-responses = {
-    status.HTTP_404_NOT_FOUND: {
-        "model": schemas.Detail,
-        "description": "Device, actuator and/or setting with given ID not found."
-    },
-    status.HTTP_504_GATEWAY_TIMEOUT: {
-        "model": schemas.Detail,
-        "description": "The set or get of a value could not be performed within the set timeout."
-    },
-    status.HTTP_406_NOT_ACCEPTABLE: {
-        "model": schemas.Detail,
-        "description": "The value to set was not accepted."
-    },
-    status.HTTP_423_LOCKED: {
-        "model": schemas.Detail,
-        "description": "The device is busy."
-    }
-}
+
 set_timeout = 5
 get_timeout = 0.1
 

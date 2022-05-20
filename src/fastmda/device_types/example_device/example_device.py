@@ -66,7 +66,7 @@ class Device(AbstractDevice):
         return {}
 
     @property
-    def actuators(self) -> Dict[int, Union[DiscreteActuator, ContinuousActuator]]:
+    def actuators(self) -> Mapping[int, Union[DiscreteActuator, ContinuousActuator]]:
         return self._actuators
 
     @property

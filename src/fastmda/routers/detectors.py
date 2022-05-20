@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Union
 
 from fastapi import APIRouter, Path, HTTPException, status, Query
@@ -10,6 +11,9 @@ router = APIRouter(
     prefix="/devices/{device_id}/detectors",
     tags=["detectors"]
 )
+
+set_timeout = 5
+get_timeout = 0.1
 
 
 @router.get("/", response_model=List[schemas.DetectorInfo], summary="Get all added detector instances")
@@ -52,7 +56,7 @@ async def get_all_detector_settings(device_id: int = Path(..., description="The 
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        return [setting.info for _, setting in device.detectors[detector_id].settings]
+        return [setting.info for _, setting in device.detectors[detector_id].settings.items()]
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No detector with ID {detector_id}.")
 
@@ -122,8 +126,12 @@ async def set_detector_setting_value(
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No detector with ID {detector_id}.")
     try:
-        detector.settings[setting_id].set_value(value)
-        return detector.settings[setting_id].get_value()
+        await asyncio.wait_for(detector.settings[setting_id].set_value(value), timeout=set_timeout)
+        try:
+            return await asyncio.wait_for(detector.settings[setting_id].get_value(), timeout=set_timeout)
+        except asyncio.TimeoutError:
+            raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                                detail=f"The set could not be read within the timeout of {get_timeout} s.")
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No detector setting with ID {setting_id}.")
     except FastMDAisBusy:

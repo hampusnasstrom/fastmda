@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict, List, Union
 
 from fastapi import APIRouter, Path, HTTPException, status, Depends, Query
@@ -13,6 +14,9 @@ router = APIRouter(
     prefix="/devices",
     tags=["devices"]
 )
+
+set_timeout = 5
+get_timeout = 0.1
 
 
 # Dependency
@@ -176,8 +180,12 @@ async def set_device_setting_value(
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device with ID {device_id}.")
     try:
-        device.settings[setting_id].set_value(value)
-        return device.settings[setting_id].get_value()
+        await asyncio.wait_for(device.settings[setting_id].set_value(value), timeout=set_timeout)
+        try:
+            return await asyncio.wait_for(device.settings[setting_id].get_value(), timeout=set_timeout)
+        except asyncio.TimeoutError:
+            raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                                detail=f"The set could not be read within the timeout of {get_timeout} s.")
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device setting with ID {setting_id}.")
     except FastMDAisBusy:
