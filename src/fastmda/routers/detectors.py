@@ -3,7 +3,7 @@ from typing import List, Union
 from fastapi import APIRouter, Path, HTTPException, status, Query
 
 from fastmda import schemas
-from fastmda.exceptions import *
+from fastmda.exceptions import FastMDAisBusy, FastMDAatHardSettingLimit, FastMDAatSoftSettingLimit
 from fastmda.globals import device_dict
 
 router = APIRouter(
@@ -127,7 +127,7 @@ async def set_detector_setting_value(
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No detector setting with ID {setting_id}.")
     except FastMDAisBusy:
-        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=f"The device is busy.")
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="The device is busy.")
     except FastMDAatHardSettingLimit:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"The value of {value} is outside the hard limits of the setting " +

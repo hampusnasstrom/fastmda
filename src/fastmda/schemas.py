@@ -72,7 +72,7 @@ class SettingInfo(BaseModel):
     name: str = Field(..., description="Name of the actuator to display to user.")
     setting_id: int = Field(..., description="Unique (for the parent) ID of the setting.")
     parent_id: int = Field(..., description="Unique ID of the parent device.")
-    grandparent_id: int = Field(None, description="If the parent device is an actuator or detector, this is the" + \
+    grandparent_id: int = Field(None, description="If the parent device is an actuator or detector, this is the" +
                                                   "unique ID of their parent device, otherwise None.")
 
 

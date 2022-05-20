@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from fastmda import crud, schemas
 from fastmda.database import SessionLocal
-from fastmda.exceptions import *
+from fastmda.exceptions import FastMDAConnectFailed, FastMDAisBusy, FastMDAatHardSettingLimit, FastMDAatSoftSettingLimit
 from fastmda.globals import device_dict, device_types_info, device_types_modules
 from fastmda.schemas import DeviceInfo, DeviceType, DeviceInfoCreate
 
@@ -181,7 +181,7 @@ async def set_device_setting_value(
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No device setting with ID {setting_id}.")
     except FastMDAisBusy:
-        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=f"The device is busy.")
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="The device is busy.")
     except FastMDAatHardSettingLimit:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"The value of {value} is outside the hard limits of the setting " +

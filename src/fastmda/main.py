@@ -4,7 +4,7 @@ from pkgutil import iter_modules
 from fastapi import FastAPI
 
 from fastmda.exceptions import FastMDAImplementationError, FastMDAModuleError
-from fastmda.globals import *
+from fastmda.globals import device_dict, device_types_info, device_types_modules
 from fastmda import models, device_types, crud
 from fastmda.database import engine, SessionLocal
 from fastmda.schemas import DeviceInfo
@@ -15,7 +15,7 @@ This is the OpenAPI interface for the fastMDA multi dimensional acquisition serv
 
 ## Devices
 
-The device is the hardware connected to the measurement server which controls your actuators and detectors. 
+The device is the hardware connected to the measurement server which controls your actuators and detectors.
 You will be able to:
 
 * **Create** devices.
@@ -27,7 +27,7 @@ Anything that actuates (motor, filter, etc...).
 
 #### Discrete
 
-#### Continuous 
+#### Continuous
 
 ### Detectors
 

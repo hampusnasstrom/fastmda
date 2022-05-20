@@ -1,5 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, PickleType
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, Integer, String, PickleType
 
 from .database import Base
 

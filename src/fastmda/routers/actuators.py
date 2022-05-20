@@ -5,7 +5,7 @@ from fastapi import APIRouter, Path, HTTPException, status, Query
 
 from fastmda import schemas
 from fastmda.database import SessionLocal
-from fastmda.exceptions import *
+from fastmda.exceptions import FastMDAisBusy, FastMDAatHardSettingLimit, FastMDAatSoftSettingLimit
 from fastmda.globals import device_dict
 from fastmda.objects import DiscreteActuator, ContinuousActuator
 
@@ -169,7 +169,7 @@ async def set_actuator_value(value: Union[int, float] = Query(..., description="
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator with ID {actuator_id}.")
     except FastMDAisBusy:
-        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=f"The device is busy.")
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="The device is busy.")
     except FastMDAatHardSettingLimit:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"The value of {value} is outside the hard limits of the setting " +
@@ -318,7 +318,7 @@ async def set_actuator_setting_value(
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No actuator setting with ID {setting_id}.")
     except FastMDAisBusy:
-        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=f"The device is busy.")
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="The device is busy.")
     except FastMDAatHardSettingLimit:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail=f"The value of {value} is outside the hard limits of the setting " +
