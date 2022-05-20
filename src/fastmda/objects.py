@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Dict, Tuple, Union
+from typing import List, Dict, Tuple, Union, Mapping
 
 from xarray import DataArray, Dataset
 
@@ -374,7 +374,7 @@ class DiscreteActuator(__DiscreteValue, ABC):
 
     @property
     @abstractmethod
-    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+    def settings(self) -> Mapping[int, Union[DiscreteSetting, ContinuousSetting]]:
         """
         Getter method for the settings property. Should return a dict with integer keys and setting object values.
 

@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Dict, Union, Tuple
+from typing import List, Dict, Union, Tuple, Mapping
 
 from fastmda import schemas
 from fastmda.exceptions import FastMDAConnectFailed
@@ -22,7 +22,7 @@ class MyActuator(DiscreteActuator):
         return f"My actuator number {self.actuator_id}"
 
     @property
-    def settings(self) -> Dict[int, Union[DiscreteSetting, ContinuousSetting]]:
+    def settings(self) -> Mapping[int, Union[DiscreteSetting, ContinuousSetting]]:
         return self._settings
 
     async def get_value(self) -> str:
